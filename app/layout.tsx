@@ -7,17 +7,17 @@ export const metadata: Metadata = {
   description: "A cute fiscal tracker",
 };
 
-export default function RootLayout({
-  children,
-}: Readonly<{
-  children: React.ReactNode;
-}>) {
+// app/layout.jsx
+import { UserProvider } from '@auth0/nextjs-auth0/client';
+import { LayoutProps } from "@/.next/types/app/layout";
+
+
+export default function RootLayout({ children, ...props }: LayoutProps) {
   return (
     <html lang="en">
-      <body
-      >
-        {children}
-      </body>
+    <UserProvider>
+      <body>{children}</body>
+    </UserProvider>
     </html>
   );
 }

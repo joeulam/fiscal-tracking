@@ -9,6 +9,7 @@
     "lint": "next lint"
   },
   "dependencies": {
+    "@auth0/nextjs-auth0": "^3.5.0",
     "@types/auth0": "^3.3.10",
     "antd": "^5.22.2",
     "next": "15.0.3",
