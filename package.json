@@ -9,6 +9,7 @@
     "lint": "next lint"
   },
   "dependencies": {
+    "@types/auth0": "^3.3.10",
     "antd": "^5.22.2",
     "next": "15.0.3",
     "react": "19.0.0-rc-66855b96-20241106",
