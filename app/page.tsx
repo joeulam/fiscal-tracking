@@ -30,13 +30,19 @@ const LoginPage = () => {
     // Redirect to OAuth login endpoint
     window.location.href = '/api/auth/login';
   };
-
+  const handleSignup= () => {
+    // Redirect to OAuth login endpoint
+    window.location.href = '/api/auth/signup';
+  };
   return (
     <div>
-      <h1>Welcome to the Login Page</h1>
-      <p>Please log in to access the application</p>
+      <h1>Welcome to matcha</h1>
+      <p>A financial tracker</p>
       <Button type="primary" onClick={handleLogin}>
         Login
+      </Button>
+      <Button type="primary" onClick={handleSignup}>
+        Signup
       </Button>
     </div>
   );
