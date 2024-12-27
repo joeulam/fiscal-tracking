@@ -12,8 +12,8 @@ const client = new MongoClient(uri, {
 });
 
 
-export async function doesUserExist(userId: String, userName: String ,emailAddress: String){
-  var Double = require("mongodb").Double; // Insures double datatype
+export async function doesUserExist(userId: string, userName: string ,emailAddress: string){
+  let Double = require("mongodb").Double; // Insures double datatype
   await client.connect(); // Connects to collection
   const dataBase = await client.db("calico_user_data") // Connects to database
   const collection = await dataBase.collection("user") // Connect to collection
