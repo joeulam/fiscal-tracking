@@ -31,10 +31,8 @@ async function loadConnection() {
   // Connect the client to the server	(optional starting in v4.7)
   await client.connect();
   // Send a ping to confirm a successful connection
-  const Collection = await client.db("calico_user_data").command({ ping: 1 });
+  await client.db("calico_user_data").command({ ping: 1 });
   console.log("Pinged your deployment. You successfully connected to MongoDB!");
-  await Collection.collection("user").command({ ping: 1 });
-  console.log("Pinged your collection. You successfully connected to collection!");
 }
 
 loadConnection().catch(console.dir);

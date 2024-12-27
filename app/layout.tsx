@@ -2,8 +2,8 @@ import type { Metadata } from "next";
 import "./globals.css";
 
 export const metadata: Metadata = {
-  title: "Cotracker",
-  description: "A cute fiscal tracker",
+  title: "Calico",
+  description: "A cute cat themed fiscal tracker",
 };
 
 // app/layout.jsx
