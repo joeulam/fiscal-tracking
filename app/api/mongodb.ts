@@ -1,5 +1,3 @@
-import { Claims } from "@auth0/nextjs-auth0";
-
 const { MongoClient, ServerApiVersion } = require('mongodb');
 const uri = `mongodb+srv://${process.env.MONGODB_USERNAME}:${process.env.MONGODB_PASSWORD}@calico.sgvrk.mongodb.net/?retryWrites=true&w=majority&appName=calico`;
 const Double = require("mongodb").Double; // Insures double datatype
