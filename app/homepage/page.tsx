@@ -12,7 +12,6 @@ export default async function homePage() {
             <img src={user.picture} alt={user.name} />
             <h2>{user.name}</h2>
             <p>{user.email}</p>
-						
             <a href="/api/auth/logout">Logout</a>
           </div>
       )
