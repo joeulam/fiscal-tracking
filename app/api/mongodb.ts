@@ -1,6 +1,7 @@
 
 const { MongoClient, ServerApiVersion } = require('mongodb');
 const uri = `mongodb+srv://${process.env.MONGODB_USERNAME}:${process.env.MONGODB_PASSWORD}@calico.sgvrk.mongodb.net/?retryWrites=true&w=majority&appName=calico`;
+const Double = require("mongodb").Double; // Insures double datatype
 
 // Create a MongoClient with a MongoClientOptions object to set the Stable API version
 const client = new MongoClient(uri, {
@@ -11,9 +12,13 @@ const client = new MongoClient(uri, {
   }
 });
 
+interface Transaction{ // Transaction class 
+  created: Date,
+  cost: typeof Double,
+
+}
 
 export async function doesUserExist(userId: string, userName: string ,emailAddress: string){
-  let Double = require("mongodb").Double; // Insures double datatype
   await client.connect(); // Connects to collection
   const dataBase = await client.db("calico_user_data") // Connects to database
   const collection = await dataBase.collection("user") // Connect to collection
