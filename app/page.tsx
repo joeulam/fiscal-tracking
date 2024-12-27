@@ -36,7 +36,7 @@ const LoginPage = () => {
   };
   return (
     <div>
-      <h1>Welcome to matcha</h1>
+      <h1>Welcome to Calico</h1>
       <p>A financial tracker</p>
       <Button type="primary" onClick={handleLogin}>
         Login
