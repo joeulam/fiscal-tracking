@@ -1,3 +1,4 @@
+import { Claims } from "@auth0/nextjs-auth0";
 
 const { MongoClient, ServerApiVersion } = require('mongodb');
 const uri = `mongodb+srv://${process.env.MONGODB_USERNAME}:${process.env.MONGODB_PASSWORD}@calico.sgvrk.mongodb.net/?retryWrites=true&w=majority&appName=calico`;
@@ -17,15 +18,21 @@ interface Transaction{ // Transaction class
   cost: typeof Double,
 
 }
+export async function doesUsernameExist(userData: string){
+  if(userData.includes("google")){
+    console.log(userData)
+  }
+}
 
 export async function doesUserExist(userId: string, userName: string ,emailAddress: string){
+  userId = userId.split("|")[1] // splits
   await client.connect(); // Connects to collection
   const dataBase = await client.db("calico_user_data") // Connects to database
   const collection = await dataBase.collection("user") // Connect to collection
   const clientExistResult = await collection.findOne({
     "user_id": userId // first username is the mongoDB field second userName is current userName
   })
-  console.log(`result of search ${clientExistResult}, and the userID is ${userId}`)
+  console.log(`result of search ${clientExistResult}, and the userID is ${userId}`) // Remove in prod
   if(clientExistResult == null){
     const doc = { "user_id": userId, "user_name": userName, "email": emailAddress, "spending": new Double(0), "savings": new Double(0) };
     await collection.insertOne(doc); 

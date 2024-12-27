@@ -38,10 +38,10 @@ const LoginPage = () => {
     <div>
       <h1>Welcome to Calico</h1>
       <p>A financial tracker</p>
-      <Button type="primary" onClick={handleLogin}>
+      <Button onClick={handleLogin}>
         Login
       </Button>
-      <Button type="primary" onClick={handleSignup}>
+      <Button onClick={handleSignup}>
         Signup
       </Button>
     </div>
