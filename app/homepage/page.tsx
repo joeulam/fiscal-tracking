@@ -1,12 +1,11 @@
 'use client'
 import React, { useEffect, useState } from 'react';
 import { useUser } from '@auth0/nextjs-auth0/client';
-import { Button, DatePicker, DatePickerProps, FloatButton, Form, Input, InputNumber, message, Modal, Spin } from 'antd';
+import { Button, DatePicker, FloatButton, Form, Input, InputNumber, message, Modal, Spin } from 'antd';
 import { PlusOutlined } from '@ant-design/icons';
 import { Dayjs } from 'dayjs';
-import type { FormProps } from 'antd';
 
-type Transaction = {
+type Transaction = { // Transaction class
     name: string;
     cost?: number;
     date?: Dayjs;
@@ -16,7 +15,7 @@ type Transaction = {
 export default function HomePage() {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const { user, error, isLoading } = useUser();
-	const [form] = Form.useForm<Transaction>();
+	const [form] = Form.useForm<Transaction>(); // Store transaction data
 
   // * -------------------- Modal popup control
   const showModal = () => {
@@ -60,14 +59,14 @@ export default function HomePage() {
   }
   const [messageApi, contextHolder] = message.useMessage();
 
-  const successTransaction = () => {
+  const successTransaction = () => { // Success notification - Might make it take a parameter instead so we can reuse it
     messageApi.open({
       type: 'success',
       content: 'Successfully added',
     });
   };
 
-  const failed = () => {
+  const failed = () => { // Failure notification - Might make it take a parameter instead so we can reuse it
     messageApi.open({
       type: 'error',
       content: 'errmmm something went wrong',

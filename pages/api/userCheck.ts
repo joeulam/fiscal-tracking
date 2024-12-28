@@ -1,6 +1,6 @@
 'use server';
 import { NextApiRequest, NextApiResponse } from 'next';
-import { doesUserExist, loadConnection } from './mongodb';
+import { doesUserExist } from './mongodb';
 export default async function POST(req: NextApiRequest, res: NextApiResponse) {
   try {
     const reqData = await req.body

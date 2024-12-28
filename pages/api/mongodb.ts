@@ -1,8 +1,6 @@
-const { MongoClient, ServerApiVersion } = require('mongodb');
 import { ObjectId } from "mongodb";
-
+import { Double, MongoClient, ServerApiVersion  } from "mongodb";
 const uri = `mongodb+srv://${process.env.MONGODB_USERNAME}:${process.env.MONGODB_PASSWORD}@calico.sgvrk.mongodb.net/?retryWrites=true&w=majority&appName=calico`;
-const Double = require("mongodb").Double; // Insures double datatype
 
 // Create a MongoClient with a MongoClientOptions object to set the Stable API version
 const client = new MongoClient(uri, {
@@ -26,7 +24,7 @@ export async function insertTransaction(userId: string, name: string, cost?: num
   const doc = {
     _id: new ObjectId(),
     "name": name, 
-    "cost": new Double(cost), 
+    "cost": new Double(cost!), 
     "date": date, 
     "description": description, 
   };
@@ -39,8 +37,8 @@ export async function insertTransaction(userId: string, name: string, cost?: num
 export async function doesUserExist(userId: string, userName: string ,emailAddress: string){
   userId = userId.split("|")[1] // splits
   await client.connect(); // Connects to collection
-  const dataBase = await client.db("calico_user_data") // Connects to database
-  const collection = await dataBase.collection("user") // Connect to collection
+  const dataBase = client.db("calico_user_data") // Connects to database
+  const collection = dataBase.collection("user") // Connect to collection
   const clientExistResult = await collection.findOne({
     "user_id": userId // first username is the mongoDB field second userName is current userName
   })
