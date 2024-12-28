@@ -1,4 +1,6 @@
 const { MongoClient, ServerApiVersion } = require('mongodb');
+import { ObjectId } from "mongodb";
+
 const uri = `mongodb+srv://${process.env.MONGODB_USERNAME}:${process.env.MONGODB_PASSWORD}@calico.sgvrk.mongodb.net/?retryWrites=true&w=majority&appName=calico`;
 const Double = require("mongodb").Double; // Insures double datatype
 
@@ -11,15 +13,27 @@ const client = new MongoClient(uri, {
   }
 });
 
-interface Transaction{ // Transaction class 
-  created: Date,
-  cost: typeof Double,
-
-}
-export async function doesUsernameExist(userData: string){
+export async function doesUsernameExist(userData: string){ // Needs to be done - Joey
   if(userData.includes("google")){
     console.log(userData)
   }
+}
+
+export async function insertTransaction(userId: string, name: string, cost?: number, date?: Date, description?: string){
+  userId = userId.split("|")[1] // splits
+  const dataBase = await client.db("calico_user_data") // Connects to database
+  const collections = await dataBase.collection("user") // Connect to collection
+  const doc = {
+    _id: new ObjectId(),
+    "name": name, 
+    "cost": new Double(cost), 
+    "date": date, 
+    "description": description, 
+  };
+  await collections.updateOne(
+    {user_id: userId },
+    {$push: { transactions: doc } 
+  }); 
 }
 
 export async function doesUserExist(userId: string, userName: string ,emailAddress: string){
@@ -32,11 +46,19 @@ export async function doesUserExist(userId: string, userName: string ,emailAddre
   })
   console.log(`result of search ${clientExistResult}, and the userID is ${userId}`) // Remove in prod
   if(clientExistResult == null){
-    const doc = { "user_id": userId, "user_name": userName, "email": emailAddress, "spending": new Double(0), "savings": new Double(0) };
+    const doc = { 
+      "user_id": userId, 
+      "user_name": userName, 
+      "email": emailAddress, 
+      "spending": new Double(0), 
+      "savings": new Double(0),
+      "transactions": [],
+    };
+    
     await collection.insertOne(doc); 
   }
 }
-async function loadConnection() {
+export async function loadConnection() {
   // Connect the client to the server	(optional starting in v4.7)
   await client.connect();
   // Send a ping to confirm a successful connection
