@@ -1,5 +1,4 @@
-import { ObjectId } from "mongodb";
-import { Double, MongoClient, ServerApiVersion  } from "mongodb";
+import { Double, MongoClient, PushOperator, ServerApiVersion  } from "mongodb";
 const uri = `mongodb+srv://${process.env.MONGODB_USERNAME}:${process.env.MONGODB_PASSWORD}@calico.sgvrk.mongodb.net/?retryWrites=true&w=majority&appName=calico`;
 
 // Create a MongoClient with a MongoClientOptions object to set the Stable API version
@@ -17,12 +16,12 @@ export async function doesUsernameExist(userData: string){ // Needs to be done -
   }
 }
 
+
 export async function insertTransaction(userId: string, name: string, cost?: number, date?: Date, description?: string){
   userId = userId.split("|")[1] // splits
-  const dataBase = await client.db("calico_user_data") // Connects to database
-  const collections = await dataBase.collection("user") // Connect to collection
+  const dataBase = client.db("calico_user_data") // Connects to database
+  const collections = dataBase.collection("user") // Connect to collection
   const doc = {
-    _id: new ObjectId(),
     "name": name, 
     "cost": new Double(cost!), 
     "date": date, 
@@ -30,8 +29,8 @@ export async function insertTransaction(userId: string, name: string, cost?: num
   };
   await collections.updateOne(
     {user_id: userId },
-    {$push: { transactions: doc } 
-  }); 
+    {$push: { transactions: doc } as PushOperator<Document>}
+  ); 
 }
 
 export async function doesUserExist(userId: string, userName: string ,emailAddress: string){
