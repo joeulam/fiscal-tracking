@@ -205,7 +205,7 @@ export default function HomePage() {
         <List
           itemLayout="horizontal"
           dataSource={data}
-          renderItem={(item, index) => (
+          renderItem={(item) => (
             <Card>
               <List.Item>
                 <List.Item.Meta
