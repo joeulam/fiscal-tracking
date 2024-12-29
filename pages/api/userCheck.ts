@@ -8,6 +8,7 @@ export default async function POST(req: NextApiRequest, res: NextApiResponse) {
     const userName = reqData.userName
     const emailAddress = reqData.emailAddress
     doesUserExist(userID, userName, emailAddress);
+    // doesUsernameExist(userID) // keep for future username check for those who signup via social auth
     res.status(200).json({ });
   } catch (error) {
     console.log(error)

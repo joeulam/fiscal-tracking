@@ -1,7 +1,7 @@
 'use client'
 import React, { useEffect, useState } from 'react';
 import { useUser } from '@auth0/nextjs-auth0/client';
-import { Button, DatePicker, FloatButton, Form, Input, InputNumber, message, Modal, Spin } from 'antd';
+import { Button, Card, Col, DatePicker, FloatButton, Form, Input, InputNumber, List, message, Modal, Row, Skeleton, Spin, Statistic } from 'antd';
 import { PlusOutlined } from '@ant-design/icons';
 import { Dayjs } from 'dayjs';
 
@@ -14,6 +14,9 @@ type Transaction = { // Transaction class
 
 export default function HomePage() {
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const [monthlySpendingAmount, setMonthlySpending] = useState(0);
+  const [monthlySpendingLoading, setMonthlySpendingLoading] = useState(true);
+
   const { user, error, isLoading } = useUser();
 	const [form] = Form.useForm<Transaction>(); // Store transaction data
 
@@ -73,6 +76,55 @@ export default function HomePage() {
     });
   };
 
+  const monthlySpending = async () => {
+    try {
+      const response = await fetch("/api/getUserTransaction", { // Applies check to whether or not the user mongoDB exist or not
+        method: "POST",
+        body: JSON.stringify({
+          userID: user?.sub,
+        }),
+        headers: {
+          "Content-type": "application/json; charset=UTF-8"
+        }
+      });
+      if(response.ok){
+        const currentMonth = new Date().getMonth();
+        const currentYear = new Date().getFullYear();
+        const jsonDetail = await response.json()
+        setMonthlySpending(
+          jsonDetail.response.transactions
+            .filter((item: { date: string | number | Date; }) => {
+              const itemDate = new Date(item.date);
+              return (
+                itemDate.getMonth() === currentMonth &&
+                itemDate.getFullYear() === currentYear
+              );
+            })
+            .reduce((acc: number, item: Transaction) => acc + item.cost!, 0)
+        );
+        setMonthlySpendingLoading(false);
+      }
+    } catch (err) {
+      failed();
+      console.error("Error uploading data:", err);
+    }
+  }
+  const data = [ // Recent transaction turn it into an call function
+    {
+      title: 'spending balh data Title 1',
+    },
+    {
+      title: 'spending balh data Title 2',
+    },
+    {
+      title: 'spending balh data Title 3',
+    },
+    {
+      title: 'spending balh dataTitle 4',
+    },
+  ];
+
+
   useEffect(() => {
     if (!isLoading && user) { // Ensure data fetching happens only when not loading and user is available
       const fetchData = async () => {
@@ -90,6 +142,9 @@ export default function HomePage() {
           });
           if (!response.ok) {
             throw new Error("Failed to fetch data");
+          }
+          else{
+            await monthlySpending();
           }
           console.log(user);
         } catch (err) {
@@ -126,6 +181,42 @@ export default function HomePage() {
         <h2>{user.name}</h2>
         <p>{user.email}</p>
         <FloatButton onClick={()=>showModal()} icon={<PlusOutlined />}>Add transaction</FloatButton>
+        <div>
+          <Row gutter={16}>
+            <Col span={12}>
+            {monthlySpendingLoading ? (
+              <Card bordered={false}>
+                <Skeleton active paragraph={false} />
+              </Card>
+            ) : (
+              <Card bordered={false}>
+                <Statistic
+                  title="Current monthly spending"
+                  value={monthlySpendingAmount}
+                  precision={2}
+                  suffix="$"
+                />
+              </Card>
+            )}
+            </Col>
+          </Row>
+        </div>
+        <div>
+        <List
+          itemLayout="horizontal"
+          dataSource={data}
+          renderItem={(item, index) => (
+            <Card>
+              <List.Item>
+                <List.Item.Meta
+                  title={<a href="https://ant.design">{item.title}</a>}
+                  description="Ant Design, a design language for background applications, is refined by Ant UED Team"
+                />
+              </List.Item>
+            </Card>
+          )}
+        />
+        </div>
         <Button>
           <a href="/api/auth/logout">Logout</a>
         </Button>

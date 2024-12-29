@@ -10,12 +10,25 @@ const client = new MongoClient(uri, {
   }
 });
 
-export async function doesUsernameExist(userData: string){ // Needs to be done - Joey
+export async function doesUsernameExist(userData: string){ // Needs to be done when social auth is setup- Joey
   if(userData.includes("google")){
-    console.log(userData)
   }
 }
 
+export async function getMonthlyTransaction(){
+
+}
+
+export async function getRecentTransactions(userId: string){ // Gets last 5 transactions
+  console.log(userId)
+  userId = userId.split("|")[1] // splits
+  const dataBase = client.db("calico_user_data") // Connects to database
+  const collections = dataBase.collection("user") // Connect to collection
+  const clientExistResult = await collections.findOne({
+    "user_id": userId // first username is the mongoDB field second userName is current userName
+  })
+  return clientExistResult;
+}
 
 export async function insertTransaction(userId: string, name: string, cost?: number, date?: Date, description?: string){
   userId = userId.split("|")[1] // splits
