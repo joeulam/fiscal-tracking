@@ -16,7 +16,7 @@ export default function HomePage() {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [monthlySpendingAmount, setMonthlySpending] = useState(0);
   const [monthlySpendingLoading, setMonthlySpendingLoading] = useState(true);
-
+  const [historicalTransaction, setHistoricalTransaction] = useState<Transaction[]>([]);
   const { user, error, isLoading } = useUser();
 	const [form] = Form.useForm<Transaction>(); // Store transaction data
 
@@ -27,8 +27,9 @@ export default function HomePage() {
 
   const handleOk= async () => {
 		const values = await form.validateFields();
-    uploadTranscation(values)
-    setMonthlySpending(monthlySpendingAmount + values.cost!)
+    uploadTranscation(values);
+    setHistoricalTransaction([values, ...historicalTransaction]);
+    setMonthlySpending(monthlySpendingAmount + values.cost!);
   };
 
   const handleCancel = () => {
@@ -91,7 +92,8 @@ export default function HomePage() {
       if(response.ok){
         const currentMonth = new Date().getMonth();
         const currentYear = new Date().getFullYear();
-        const jsonDetail = await response.json()
+        const jsonDetail = await response.json();
+        setHistoricalTransaction(jsonDetail.response.transactions)
         setMonthlySpending(
           jsonDetail.response.transactions
             .filter((item: { date: string | number | Date; }) => {
@@ -110,22 +112,6 @@ export default function HomePage() {
       console.error("Error uploading data:", err);
     }
   }
-  const data = [ // Recent transaction turn it into an call function
-    {
-      title: 'spending balh data Title 1',
-    },
-    {
-      title: 'spending balh data Title 2',
-    },
-    {
-      title: 'spending balh data Title 3',
-    },
-    {
-      title: 'spending balh dataTitle 4',
-    },
-  ];
-
-
   useEffect(() => {
     if (!isLoading && user) { // Ensure data fetching happens only when not loading and user is available
       const fetchData = async () => {
@@ -154,6 +140,7 @@ export default function HomePage() {
       };
 
       fetchData();
+      console.log(historicalTransaction)
     }
   }, [isLoading, user]); // Add dependencies to run the effect properly
 
@@ -206,13 +193,13 @@ export default function HomePage() {
         <div>
         <List
           itemLayout="horizontal"
-          dataSource={data}
+          dataSource={historicalTransaction}
           renderItem={(item) => (
             <Card>
               <List.Item>
                 <List.Item.Meta
-                  title={<a href="https://ant.design">{item.title}</a>} // Change so it dynamically updates with transaction
-                  description="U BIG MOOLA SPENDER SMH" // Change so it dynamically updates with transaction
+                  title={item.name} // Change so it dynamically updates with transaction
+                  description={"$"+item.cost} // Change so it dynamically updates with transaction
                 />
               </List.Item>
             </Card>
