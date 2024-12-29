@@ -209,8 +209,8 @@ export default function HomePage() {
             <Card>
               <List.Item>
                 <List.Item.Meta
-                  title={<a href="https://ant.design">{item.title}</a>}
-                  description="Ant Design, a design language for background applications, is refined by Ant UED Team"
+                  title={<a href="https://ant.design">{item.title}</a>} // Change so it dynamically updates with transaction
+                  description="U BIG MOOLA SPENDER SMH" // Change so it dynamically updates with transaction
                 />
               </List.Item>
             </Card>
