@@ -165,7 +165,7 @@ export default function HomePage() {
     user ? (
       <div >
 				{contextHolder}
-        <img className="w-15 h-12" src='icon.png'/>
+        <img className="w-40 h-38" src='calicoWDiscription.png'/>
         <img src={user.picture!} alt={user.name!} />
         <h2>{user.name}</h2>
         <p>{user.email}</p>
