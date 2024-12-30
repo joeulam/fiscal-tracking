@@ -15,12 +15,13 @@ export async function doesUsernameExist(userData: string){ // Needs to be done w
   }
 }
 
-export async function getMonthlyTransaction(){
-
+export async function editTransaction(userId: string, transactionName: string, transactionDate: Date){
+  // Add search and edit feature (See if it is possible to search via document id instead)
 }
+  
+
 
 export async function getRecentTransactions(userId: string){ // Gets last 5 transactions
-  console.log(userId)
   userId = userId.split("|")[1] // splits
   const dataBase = client.db("calico_user_data") // Connects to database
   const collections = dataBase.collection("user") // Connect to collection
@@ -54,7 +55,6 @@ export async function doesUserExist(userId: string, userName: string ,emailAddre
   const clientExistResult = await collection.findOne({
     "user_id": userId // first username is the mongoDB field second userName is current userName
   })
-  console.log(`result of search ${clientExistResult}, and the userID is ${userId}`) // Remove in prod
   if(clientExistResult == null){
     const doc = { 
       "user_id": userId, 
@@ -73,7 +73,6 @@ export async function loadConnection() {
   await client.connect();
   // Send a ping to confirm a successful connection
   await client.db("calico_user_data").command({ ping: 1 });
-  console.log("Pinged your deployment. You successfully connected to MongoDB!");
 }
 
 loadConnection().catch(console.dir);

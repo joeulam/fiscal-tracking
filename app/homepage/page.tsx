@@ -140,7 +140,6 @@ export default function HomePage() {
       };
 
       fetchData();
-      console.log(historicalTransaction)
     }
   }, [isLoading, user]); // Add dependencies to run the effect properly
 
@@ -196,7 +195,9 @@ export default function HomePage() {
           dataSource={historicalTransaction}
           renderItem={(item) => (
             <Card>
-              <List.Item>
+              <List.Item
+                actions={[<a key="list-loadmore-edit">edit</a>]} // Make it popup modal and edit from there 
+              >
                 <List.Item.Meta
                   title={item.name} // Change so it dynamically updates with transaction
                   description={"$"+item.cost} // Change so it dynamically updates with transaction
