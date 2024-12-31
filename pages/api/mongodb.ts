@@ -17,6 +17,7 @@ export async function doesUsernameExist(userData: string){ // Needs to be done w
 
 export async function editTransaction(userId: string, transactionName: string, transactionDate: Date){
   // Add search and edit feature (See if it is possible to search via document id instead)
+  console.log(userId,transactionName,transactionDate)
 }
   
 
