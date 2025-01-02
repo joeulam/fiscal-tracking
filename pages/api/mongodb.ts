@@ -1,4 +1,4 @@
-import { Double, MongoClient, PushOperator, ServerApiVersion  } from "mongodb";
+import { Double, MongoClient, ObjectId, PushOperator, ServerApiVersion  } from "mongodb";
 const uri = `mongodb+srv://${process.env.MONGODB_USERNAME}:${process.env.MONGODB_PASSWORD}@calico.sgvrk.mongodb.net/?retryWrites=true&w=majority&appName=calico`;
 
 // Create a MongoClient with a MongoClientOptions object to set the Stable API version
@@ -15,13 +15,34 @@ export async function doesUsernameExist(userData: string){ // Needs to be done w
   }
 }
 
-export async function editTransaction(userId: string, transactionName: string, transactionDate: Date){
+export async function editTransaction(userId: string, name: string, cost: number, date: Date, transactionID: string, description?: string ){
   // Add search and edit feature (See if it is possible to search via document id instead)
-  console.log(userId,transactionName,transactionDate)
+  userId = userId.split("|")[1] // splits (Notes: Please do this step before sending it to function)
+  const dataBase = client.db("calico_user_data") // Connects to database
+  const collections = dataBase.collection("user") // Connect to collection
+  const transactionResult = ({
+    user_id: userId,
+    "transactions._id": new ObjectId(transactionID),
+  })
+  const updateDoc = {
+    $set: {
+      "transactions.$.name": name,
+      "transactions.$.cost": new Double(cost), 
+      "transactions.$.date": date,
+      "transactions.$.description": description, 
+    },
+  };
+  const result = await collections.updateOne(transactionResult, updateDoc);
+  console.log(result)
+  if (result.matchedCount === 0) {
+    console.log("No matching transaction found.");
+  } else if (result.modifiedCount === 0) {
+    console.log("Transaction found, but no changes were made.");
+  } else {
+    console.log("Transaction updated successfully.");
+  }
 }
   
-
-
 export async function getRecentTransactions(userId: string){ // Gets last 5 transactions
   userId = userId.split("|")[1] // splits
   const dataBase = client.db("calico_user_data") // Connects to database
@@ -37,6 +58,7 @@ export async function insertTransaction(userId: string, name: string, cost?: num
   const dataBase = client.db("calico_user_data") // Connects to database
   const collections = dataBase.collection("user") // Connect to collection
   const doc = {
+    _id: new ObjectId(),
     "name": name, 
     "cost": new Double(cost!), 
     "date": date, 

@@ -3,9 +3,11 @@ import React, { useEffect, useState } from 'react';
 import { useUser } from '@auth0/nextjs-auth0/client';
 import { Button, Card, Col, DatePicker, FloatButton, Form, Input, InputNumber, List, message, Modal, Row, Skeleton, Spin, Statistic } from 'antd';
 import { PlusOutlined } from '@ant-design/icons';
-import { Dayjs } from 'dayjs';
+import dayjs, { Dayjs } from 'dayjs';
+import { ObjectId } from 'mongodb';
 
 type Transaction = { // Transaction class
+    _id: ObjectId;
     name: string;
     cost?: number;
     date?: Dayjs;
@@ -14,6 +16,8 @@ type Transaction = { // Transaction class
 
 export default function HomePage() {
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const [isTransactionEdit, setTransactionEdit] = useState(false);
+  const [CurrentTransactionID, setCurrentTransactionID] = useState<ObjectId>();
   const [monthlySpendingAmount, setMonthlySpending] = useState(0);
   const [monthlySpendingLoading, setMonthlySpendingLoading] = useState(true);
   const [historicalTransaction, setHistoricalTransaction] = useState<Transaction[]>([]);
@@ -21,19 +25,31 @@ export default function HomePage() {
 	const [form] = Form.useForm<Transaction>(); // Store transaction data
 
   // * -------------------- Modal popup control
-  const showModal = () => {
+  const showModal = (editTransaction :boolean) => {
+    setTransactionEdit(editTransaction)
     setIsModalOpen(true);
   };
 
-  const handleOk= async () => {
+  const handleOk = async (editTransaction: boolean) => {
 		const values = await form.validateFields();
-    uploadTranscation(values);
-    setHistoricalTransaction([values, ...historicalTransaction]);
-    setMonthlySpending(monthlySpendingAmount + values.cost!);
+    if(editTransaction){
+      uploadEditedTranscation(values)
+      // update monthly spending
+      // update histroical transaction
+      setTransactionEdit(false)
+      setIsModalOpen(false)
+    }
+    else{
+      uploadTranscation(values);
+      setHistoricalTransaction([values, ...historicalTransaction]);
+      setMonthlySpending(monthlySpendingAmount + values.cost!);
+      setIsModalOpen(false)
+    }
   };
 
   const handleCancel = () => {
     setIsModalOpen(false);
+    setTransactionEdit(false)
   };
   // * -------------------- Modal popup control
   const uploadTranscation = async (transaction: Transaction) => {
@@ -42,6 +58,7 @@ export default function HomePage() {
           method: "POST",
           body: JSON.stringify({
 						userID: user?.sub,
+            transactionID: transaction._id,
             transactionName: transaction.name,
             transactionCost: transaction.cost,
             transactionDate: transaction.date,
@@ -57,6 +74,35 @@ export default function HomePage() {
 				successTransaction();
 				form.resetFields();
 				setIsModalOpen(false);
+      } catch (err) {
+				failed();
+        console.error("Error uploading data:", err);
+      }
+  }
+
+  const uploadEditedTranscation = async (transaction: Transaction) => {
+    try {
+        const response = await fetch("/api/editTransaction", { // Applies check to whether or not the user mongoDB exist or not
+          method: "POST",
+          body: JSON.stringify({
+						userID: user?.sub,
+            transactionName: transaction.name,
+            transactionCost: transaction.cost,
+            transactionDate: transaction.date,
+            transactionDescription: transaction.description,
+            transactionID: CurrentTransactionID
+          }),
+          headers: {
+            "Content-type": "application/json; charset=UTF-8"
+          }
+        });
+        if (!response.ok) {
+          throw new Error("Failed to upload data");
+        }
+				successTransaction();
+				form.resetFields();
+				setIsModalOpen(false);
+        setCurrentTransactionID(undefined);
       } catch (err) {
 				failed();
         console.error("Error uploading data:", err);
@@ -112,6 +158,18 @@ export default function HomePage() {
       console.error("Error uploading data:", err);
     }
   }
+
+  const editTransaction = (transactionCard: Transaction) => {
+    form.setFieldsValue({
+      ...transactionCard,
+      date: dayjs(transactionCard.date)
+    });
+    setCurrentTransactionID(transactionCard._id)
+    setTransactionEdit(true)
+    showModal(true);
+  };
+  
+
   useEffect(() => {
     if (!isLoading && user) { // Ensure data fetching happens only when not loading and user is available
       const fetchData = async () => {
@@ -133,7 +191,6 @@ export default function HomePage() {
           else{
             await monthlySpending();
           }
-          console.log(user);
         } catch (err) {
           console.error("Error fetching data:", err);
         }
@@ -166,9 +223,9 @@ export default function HomePage() {
 				{contextHolder}
         <img className="w-40 h-38" src='calicoWDiscription.png'/>
         <img src={user.picture!} alt={user.name!} />
-        <h2>{user.name}</h2>
+        <h2>{user.nickname}</h2>
         <p>{user.email}</p>
-        <FloatButton onClick={()=>showModal()} icon={<PlusOutlined />}>Add transaction</FloatButton>
+        <FloatButton onClick={()=>showModal(false)} icon={<PlusOutlined />}>Add transaction</FloatButton>
         <div>
           <Row gutter={16}>
             <Col span={12}>
@@ -196,7 +253,7 @@ export default function HomePage() {
           renderItem={(item) => (
             <Card>
               <List.Item
-                actions={[<a key="list-loadmore-edit">edit</a>]} // Make it popup modal and edit from there 
+                actions={[<a onClick={() => editTransaction(item)} key="list-loadmore-edit">edit</a>]} // Make it popup modal and edit from there 
               >
                 <List.Item.Meta
                   title={item.name} // Change so it dynamically updates with transaction
@@ -211,7 +268,7 @@ export default function HomePage() {
           <a href="/api/auth/logout">Logout</a>
         </Button>
 
-        <Modal title="New transaction" open={isModalOpen} onOk={handleOk} onCancel={handleCancel}>
+        <Modal title="New transaction" open={isModalOpen} onOk={() => handleOk(isTransactionEdit)} onCancel={handleCancel}>
             <Form
 						    form={form}
                 name="basic"
