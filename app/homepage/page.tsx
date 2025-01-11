@@ -38,8 +38,8 @@ type Transaction = {
 export default function HomePage() {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [isTransactionEdit, setTransactionEdit] = useState(false);
-  const [currentTransactionID, setCurrentTransactionID] = useState<ObjectId>();
-  const [currentTransactionCost, setcurrentTransactionCost] = useState(0);
+  const [CurrentTransactionID, setCurrentTransactionID] = useState<ObjectId>();
+  const [CurrentTransactionCost, setCurrentTransactionCost] = useState(0);
   const [monthlySpendingAmount, setMonthlySpending] = useState(0);
   const [monthlySpendingLoading, setMonthlySpendingLoading] = useState(true);
   const [historicalTransaction, setHistoricalTransaction] = useState<
@@ -60,17 +60,17 @@ export default function HomePage() {
       const response = await uploadEditedTranscation(
         values,
         user!,
-        currentTransactionID!
+        CurrentTransactionID!
       );
       if (response.success) {
         successTransaction();
         setMonthlySpending(
-          monthlySpendingAmount - currentTransactionCost + values.cost!
+          monthlySpendingAmount - CurrentTransactionCost + values.cost!
         );
         setHistoricalTransaction([
           values,
           ...historicalTransaction.filter(
-            (index) => index._id !== currentTransactionID
+            (index) => index._id !== CurrentTransactionID
           ),
         ]);
         form.resetFields();
@@ -164,7 +164,7 @@ export default function HomePage() {
       date: dayjs(transactionCard.date),
     });
     setCurrentTransactionID(transactionCard._id);
-    setcurrentTransactionCost(transactionCard.cost!);
+    setCurrentTransactionCost(transactionCard.cost!);
     setTransactionEdit(true);
     showModal(true);
   };
