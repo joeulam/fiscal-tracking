@@ -17,7 +17,8 @@ type Transaction = { // Transaction class
 export default function HomePage() {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [isTransactionEdit, setTransactionEdit] = useState(false);
-  const [CurrentTransactionID, setCurrentTransactionID] = useState<ObjectId>();
+  const [currentTransactionID, setCurrentTransactionID] = useState<ObjectId>();
+  const [currentTransactionCost, setcurrentTransactionCost] = useState(0);
   const [monthlySpendingAmount, setMonthlySpending] = useState(0);
   const [monthlySpendingLoading, setMonthlySpendingLoading] = useState(true);
   const [historicalTransaction, setHistoricalTransaction] = useState<Transaction[]>([]);
@@ -35,7 +36,9 @@ export default function HomePage() {
     if(editTransaction){
       uploadEditedTranscation(values)
       // update monthly spending
-      // update histroical transaction
+      setMonthlySpending(monthlySpendingAmount - currentTransactionCost + values.cost!);
+      // update histroical transaction      
+      setHistoricalTransaction([values, ...historicalTransaction.filter((index) => index._id !== currentTransactionID)]);
       setTransactionEdit(false)
       setIsModalOpen(false)
     }
@@ -50,6 +53,7 @@ export default function HomePage() {
   const handleCancel = () => {
     setIsModalOpen(false);
     setTransactionEdit(false)
+    form.resetFields();
   };
   // * -------------------- Modal popup control
   const uploadTranscation = async (transaction: Transaction) => {
@@ -90,7 +94,7 @@ export default function HomePage() {
             transactionCost: transaction.cost,
             transactionDate: transaction.date,
             transactionDescription: transaction.description,
-            transactionID: CurrentTransactionID
+            transactionID: currentTransactionID
           }),
           headers: {
             "Content-type": "application/json; charset=UTF-8"
@@ -165,6 +169,7 @@ export default function HomePage() {
       date: dayjs(transactionCard.date)
     });
     setCurrentTransactionID(transactionCard._id)
+    setcurrentTransactionCost(transactionCard.cost!)
     setTransactionEdit(true)
     showModal(true);
   };
