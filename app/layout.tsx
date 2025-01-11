@@ -7,7 +7,7 @@ export const metadata: Metadata = {
 };
 
 // app/layout.jsx
-import { UserProvider } from '@auth0/nextjs-auth0/client';
+import { UserProvider } from "@auth0/nextjs-auth0/client";
 import { LayoutProps } from "@/.next/types/app/layout";
 
 
