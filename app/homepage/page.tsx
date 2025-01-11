@@ -260,6 +260,7 @@ export default function HomePage() {
                 actions={[
                   <a
                     onClick={() => editTransaction(item)}
+                    onKeyDown={() => editTransaction(item)}
                     key="list-loadmore-edit"
                   >
                     edit
