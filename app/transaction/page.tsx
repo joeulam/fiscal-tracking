@@ -8,7 +8,7 @@ import {
 import { useEffect, useState } from "react";
 import { useUser } from "@auth0/nextjs-auth0/client";
 import dayjs from "dayjs";
-import { Button, Card, List, Skeleton, Spin } from "antd";
+import { Button, Card, List, Spin } from "antd";
 import "@mantine/core/styles/global.css";
 import "@mantine/charts/styles.css";
 import { useRouter } from "next/navigation";
@@ -80,7 +80,7 @@ export default function TransactionPage() {
     }
   }, [isLoading, user]);
 
-  if (isLoading) {
+  if (loading) {
     return (
       <div
         style={{
