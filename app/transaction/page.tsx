@@ -3,6 +3,7 @@ import { LineChart } from "@mantine/charts";
 import { ColorSchemeScript, MantineProvider } from "@mantine/core";
 import {
   monthlySpending,
+  sortByDate,
   Transaction,
 } from "../functions/transaction_functions";
 import { useEffect, useState } from "react";
@@ -12,28 +13,6 @@ import { Button, Card, List, Spin } from "antd";
 import "@mantine/core/styles/global.css";
 import "@mantine/charts/styles.css";
 import { useRouter } from "next/navigation";
-
-export function sortByDate(
-  order: string,
-  historicalTransaction: Transaction[]
-): Transaction[] {
-  if (!historicalTransaction || historicalTransaction.length === 0) {
-    console.log("No transactions to sort.");
-    return [];
-  }
-  const sortedTransactions = [...historicalTransaction].sort((a, b) => {
-    if (!a.date || !b.date) {
-      return 0;
-    }
-    const dateA = dayjs(a.date);
-    const dateB = dayjs(b.date);
-
-    return order === "new_to_old"
-      ? dateB.valueOf() - dateA.valueOf() // Descending
-      : dateA.valueOf() - dateB.valueOf(); // Ascending
-  });
-  return sortedTransactions;
-}
 
 export default function TransactionPage() {
   const { user, isLoading } = useUser();
