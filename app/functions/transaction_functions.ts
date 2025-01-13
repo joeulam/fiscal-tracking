@@ -74,3 +74,52 @@ export const uploadEditedTranscation = async (
     return { success: false, message: (err as Error).message || "Unknown error occurred" };
   }
 };
+
+
+
+export const monthlySpending = async (user: UserProfile) => {
+  // Move this to the transaction page
+  try {
+    const response = await fetch("/api/getUserTransaction", {
+      // Applies check to whether or not the user mongoDB exist or not
+      method: "POST",
+      body: JSON.stringify({
+        userID: user?.sub!.toString().split("|")[1],
+      }),
+      headers: {
+        "Content-type": "application/json; charset=UTF-8",
+      },
+    });
+    if (response.ok) {
+      const jsonDetail = await response.json();
+        return jsonDetail
+    }
+  } catch (err) {
+    return { success: false, message: (err as Error).message || "Unknown error occurred" };
+  }
+};
+
+
+
+export const userExist = async (user: UserProfile) => {
+  try {
+    const response = await fetch("/api/userCheck", {
+      // Applies check to whether or not the user mongoDB exist or not
+      method: "POST",
+      body: JSON.stringify({
+        userId: user?.sub,
+        userName: user?.nickname,
+        emailAddress: user?.email,
+      }),
+      headers: {
+        "Content-type": "application/json; charset=UTF-8",
+      },
+    });
+    if (!response.ok) {
+      throw new Error("Failed to fetch data");
+    } else {
+      return { success: true};    }
+  } catch (err) {
+    return { success: false, message: (err as Error).message || "Unknown error occurred" };
+  }
+};
