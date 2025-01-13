@@ -16,7 +16,7 @@ import { useRouter } from "next/navigation";
 
 export default function TransactionPage() {
   const { user, isLoading } = useUser();
-  const [historicalSpending, sethistoricalSpending] = useState<
+  const [historicalSpending, setHistoricalSpending] = useState<
     { date: string; "Total spending": number }[]
   >([]);
   const [historicalTransaction, setHistoricalTransaction] = useState<
@@ -47,7 +47,7 @@ export default function TransactionPage() {
         "Total spending": cumulativeSum, // Cumulative sum up to this point
       };
     });
-    sethistoricalSpending(chartData);
+    setHistoricalSpending(chartData);
     setLoading(false);
   }
 

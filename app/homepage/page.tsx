@@ -34,11 +34,11 @@ import { useRouter } from "next/navigation";
 
 export default function HomePage() {
   const [isModalOpen, setIsModalOpen] = useState(false);
-  const [isTransactionEdit, setisTransactionEdit] = useState(false);
-  const [CurrentTransactionID, setCurrentTransactionID] = useState<ObjectId>();
-  const [CurrentTransactionCost, setCurrentTransactionCost] = useState(0);
-  const [MonthlySpendingAmount, setMonthlySpendingAmount] = useState(0);
-  const [MonthlySpendingLoading, setMonthlySpendingLoading] = useState(true);
+  const [isTransactionEdit, setIsTransactionEdit] = useState(false);
+  const [currentTransactionID, setCurrentTransactionID] = useState<ObjectId>();
+  const [currentTransactionCost, setCurrentTransactionCost] = useState(0);
+  const [monthlySpendingAmount, setMonthlySpendingAmount] = useState(0);
+  const [monthlySpendingLoading, setMonthlySpendingLoading] = useState(true);
   const [historicalTransaction, setHistoricalTransaction] = useState<
     Transaction[]
   >([]);
@@ -47,7 +47,7 @@ export default function HomePage() {
 
   // * -------------------- Modal popup control
   const showModal = (editTransaction: boolean) => {
-    setisTransactionEdit(editTransaction);
+    setIsTransactionEdit(editTransaction);
     setIsModalOpen(true);
   };
 
@@ -57,22 +57,22 @@ export default function HomePage() {
       const response = await uploadEditedTranscation(
         values,
         user!,
-        CurrentTransactionID!
+        currentTransactionID!
       );
       if (response.success) {
         successTransaction();
         setMonthlySpendingAmount(
-          MonthlySpendingAmount - CurrentTransactionCost + values.cost!
+          monthlySpendingAmount - currentTransactionCost + values.cost!
         );
         setHistoricalTransaction([
           values,
           ...historicalTransaction.filter(
-            (index) => index._id !== CurrentTransactionID
+            (index) => index._id !== currentTransactionID
           ),
         ]);
         form.resetFields();
         successTransaction();
-        setisTransactionEdit(false);
+        setIsTransactionEdit(false);
       } else {
         console.error("Upload failed:", response.message);
         failed();
@@ -90,13 +90,13 @@ export default function HomePage() {
       }
     }
     setHistoricalTransaction([values, ...historicalTransaction]);
-    setMonthlySpendingAmount(MonthlySpendingAmount + values.cost!);
+    setMonthlySpendingAmount(monthlySpendingAmount + values.cost!);
     setIsModalOpen(false);
   };
 
   const handleCancel = () => {
     setIsModalOpen(false);
-    setisTransactionEdit(false);
+    setIsTransactionEdit(false);
     form.resetFields();
   };
   // * -------------------- Modal popup control
@@ -146,7 +146,7 @@ export default function HomePage() {
     });
     setCurrentTransactionID(transactionCard._id);
     setCurrentTransactionCost(transactionCard.cost!);
-    setisTransactionEdit(true);
+    setIsTransactionEdit(true);
     showModal(true);
   };
 
@@ -192,7 +192,7 @@ export default function HomePage() {
       <div>
         <Row gutter={16}>
           <Col span={12}>
-            {MonthlySpendingLoading ? (
+            {monthlySpendingLoading ? (
               <Card bordered={false}>
                 <Skeleton active paragraph={false} />
               </Card>
@@ -200,7 +200,7 @@ export default function HomePage() {
               <Card bordered={false}>
                 <Statistic
                   title="Current monthly spending"
-                  value={MonthlySpendingAmount}
+                  value={monthlySpendingAmount}
                   precision={2}
                   suffix="$"
                 />
