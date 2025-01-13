@@ -272,7 +272,7 @@ export default function HomePage() {
               { required: true, message: "Please input transaction cost!" },
             ]}
           >
-            <InputNumber prefix="$" placeholder="0" controls />
+            <InputNumber prefix="$" placeholder="0" precision={2} controls />
           </Form.Item>
 
           <Form.Item<Transaction>
