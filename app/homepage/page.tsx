@@ -19,28 +19,25 @@ import {
   Statistic,
 } from "antd";
 import { PlusOutlined } from "@ant-design/icons";
-import dayjs, { Dayjs } from "dayjs";
+import dayjs from "dayjs";
 import { ObjectId } from "mongodb";
 import {
+  monthlySpending,
+  Transaction,
   uploadEditedTranscation,
   uploadTranscation,
+  userExist,
 } from "../functions/transaction_functions";
+import { useRouter } from "next/navigation";
 
-type Transaction = {
-  // Transaction class
-  _id: ObjectId;
-  name: string;
-  cost?: number;
-  date?: Dayjs;
-  description?: string;
-};
+
 
 export default function HomePage() {
   const [isModalOpen, setIsModalOpen] = useState(false);
-  const [isTransactionEdit, setTransactionEdit] = useState(false);
-  const [CurrentTransactionID, setCurrentTransactionID] = useState<ObjectId>();
-  const [CurrentTransactionCost, setCurrentTransactionCost] = useState(0);
-  const [monthlySpendingAmount, setMonthlySpending] = useState(0);
+  const [isTransactionEdit, setIsTransactionEdit] = useState(false);
+  const [currentTransactionID, setCurrentTransactionID] = useState<ObjectId>();
+  const [currentTransactionCost, setCurrentTransactionCost] = useState(0);
+  const [monthlySpendingAmount, setMonthlySpendingAmount] = useState(0);
   const [monthlySpendingLoading, setMonthlySpendingLoading] = useState(true);
   const [historicalTransaction, setHistoricalTransaction] = useState<
     Transaction[]
@@ -50,7 +47,7 @@ export default function HomePage() {
 
   // * -------------------- Modal popup control
   const showModal = (editTransaction: boolean) => {
-    setTransactionEdit(editTransaction);
+    setIsTransactionEdit(editTransaction);
     setIsModalOpen(true);
   };
 
@@ -60,22 +57,22 @@ export default function HomePage() {
       const response = await uploadEditedTranscation(
         values,
         user!,
-        CurrentTransactionID!
+        currentTransactionID!
       );
       if (response.success) {
         successTransaction();
-        setMonthlySpending(
-          monthlySpendingAmount - CurrentTransactionCost + values.cost!
+        setMonthlySpendingAmount(
+          monthlySpendingAmount - currentTransactionCost + values.cost!
         );
         setHistoricalTransaction([
           values,
           ...historicalTransaction.filter(
-            (index) => index._id !== CurrentTransactionID
+            (index) => index._id !== currentTransactionID
           ),
         ]);
         form.resetFields();
         successTransaction();
-        setTransactionEdit(false);
+        setIsTransactionEdit(false);
       } else {
         console.error("Upload failed:", response.message);
         failed();
@@ -93,13 +90,13 @@ export default function HomePage() {
       }
     }
     setHistoricalTransaction([values, ...historicalTransaction]);
-    setMonthlySpending(monthlySpendingAmount + values.cost!);
+    setMonthlySpendingAmount(monthlySpendingAmount + values.cost!);
     setIsModalOpen(false);
   };
 
   const handleCancel = () => {
     setIsModalOpen(false);
-    setTransactionEdit(false);
+    setIsTransactionEdit(false);
     form.resetFields();
   };
   // * -------------------- Modal popup control
@@ -121,26 +118,15 @@ export default function HomePage() {
     });
   };
 
-  const monthlySpending = async () => {
-    // Move this to the transaction page
-    try {
-      const response = await fetch("/api/getUserTransaction", {
-        // Applies check to whether or not the user mongoDB exist or not
-        method: "POST",
-        body: JSON.stringify({
-          userID: user?.sub!.toString().split("|")[1],
-        }),
-        headers: {
-          "Content-type": "application/json; charset=UTF-8",
-        },
-      });
-      if (response.ok) {
-        const currentMonth = new Date().getMonth();
+  const fetchUserData = async () => {
+    const response = await userExist(user!)
+    if(response?.success){
+      const userData = await monthlySpending(user!)
+      const currentMonth = new Date().getMonth();
         const currentYear = new Date().getFullYear();
-        const jsonDetail = await response.json();
-        setHistoricalTransaction(jsonDetail.response.transactions);
-        setMonthlySpending(
-          jsonDetail.response.transactions
+        setHistoricalTransaction(userData.response.transactions);
+        setMonthlySpendingAmount(
+          userData.response.transactions
             .filter((item: { date: string | number | Date }) => {
               const itemDate = new Date(item.date);
               return (
@@ -151,13 +137,8 @@ export default function HomePage() {
             .reduce((acc: number, item: Transaction) => acc + item.cost!, 0)
         );
         setMonthlySpendingLoading(false);
-      }
-    } catch (err) {
-      failed();
-      console.error("Error uploading data:", err);
     }
-  };
-
+  }
   const editTransaction = (transactionCard: Transaction) => {
     form.setFieldsValue({
       ...transactionCard,
@@ -165,38 +146,16 @@ export default function HomePage() {
     });
     setCurrentTransactionID(transactionCard._id);
     setCurrentTransactionCost(transactionCard.cost!);
-    setTransactionEdit(true);
+    setIsTransactionEdit(true);
     showModal(true);
   };
+
+  const router = useRouter()
 
   useEffect(() => {
     if (!isLoading && user) {
       // Ensure data fetching happens only when not loading and user is available
-      const fetchData = async () => {
-        try {
-          const response = await fetch("/api/userCheck", {
-            // Applies check to whether or not the user mongoDB exist or not
-            method: "POST",
-            body: JSON.stringify({
-              userId: user?.sub,
-              userName: user?.nickname,
-              emailAddress: user?.email,
-            }),
-            headers: {
-              "Content-type": "application/json; charset=UTF-8",
-            },
-          });
-          if (!response.ok) {
-            throw new Error("Failed to fetch data");
-          } else {
-            await monthlySpending();
-          }
-        } catch (err) {
-          console.error("Error fetching data:", err);
-        }
-      };
-
-      fetchData();
+      fetchUserData()
     }
   }, [isLoading, user]); // Add dependencies to run the effect properly
 
@@ -276,6 +235,7 @@ export default function HomePage() {
           )}
         />
       </div>
+      
       <Button>
         <a href="/api/auth/logout">Logout</a>
       </Button>
@@ -312,7 +272,7 @@ export default function HomePage() {
               { required: true, message: "Please input transaction cost!" },
             ]}
           >
-            <InputNumber prefix="$" placeholder="0" controls />
+            <InputNumber prefix="$" placeholder="0" precision={2} controls />
           </Form.Item>
 
           <Form.Item<Transaction>
@@ -330,6 +290,10 @@ export default function HomePage() {
           </Form.Item>
         </Form>
       </Modal>
+      
+      
+      <Button onClick={() => router.push('/transaction')}>Transaction page</Button>
+
     </div>
   ) : (
     <p>No user information available</p> // Handle the case where user is not defined
