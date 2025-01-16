@@ -52,6 +52,7 @@ export default function HomePage() {
   { date: string; "Total spending": number }[]
   >([]);
   const [loading, setLoading] = useState(true);
+  const [modalLoading, setModalLoading] = useState(false); // New loading state
 
   // * -------------------- Modal popup control
   const showModal = (editTransaction: boolean) => {
@@ -60,26 +61,22 @@ export default function HomePage() {
   };
 
   const handleOk = async (editTransaction: boolean) => {
+    setModalLoading(true); // Start loading spinner
     const values = await form.validateFields();
     if (editTransaction) {
-      const response = await uploadEditedTranscation(
-        values,
-        user!,
-        currentTransactionID!
-      );
+      const response = await uploadEditedTranscation(values, user!, currentTransactionID!);
       if (response.success) {
         successTransaction();
+        const updatedTransactions = [
+          values,
+          ...historicalTransaction.filter((index) => index._id !== currentTransactionID),
+        ];
+        setHistoricalTransaction(updatedTransactions);
         setMonthlySpendingAmount(
           monthlySpendingAmount - currentTransactionCost + values.cost!
         );
-        setHistoricalTransaction([
-          values,
-          ...historicalTransaction.filter(
-            (index) => index._id !== currentTransactionID
-          ),
-        ]);
+        prepareChartData(sortByDate("old_to_new", historicalTransaction)); // Refresh chart
         form.resetFields();
-        successTransaction();
         setIsTransactionEdit(false);
       } else {
         console.error("Upload failed:", response.message);
@@ -91,17 +88,20 @@ export default function HomePage() {
       const response = await uploadTranscation(values, user!);
       if (response.success) {
         successTransaction();
+        const updatedTransactions = [values, ...historicalTransaction];
+        setHistoricalTransaction(updatedTransactions);
+        setMonthlySpendingAmount(monthlySpendingAmount + values.cost!);
+        prepareChartData(sortByDate("old_to_new", historicalTransaction)); // Refresh chart
         form.resetFields();
       } else {
         console.error("Upload failed:", response.message);
         failed();
       }
     }
-    setHistoricalTransaction([values, ...historicalTransaction]);
-    setMonthlySpendingAmount(monthlySpendingAmount + values.cost!);
     setIsModalOpen(false);
+    setModalLoading(false); // Stop loading spinner
   };
-
+  
   const handleCancel = () => {
     setIsModalOpen(false);
     setIsTransactionEdit(false);
@@ -132,7 +132,6 @@ export default function HomePage() {
       const userData = await monthlySpending(user!)
       const currentMonth = new Date().getMonth();
         const currentYear = new Date().getFullYear();
-        setHistoricalTransaction(userData.response.transactions);
         setMonthlySpendingAmount(
           userData.response.transactions
             .filter((item: { date: string | number | Date }) => {
@@ -169,22 +168,20 @@ export default function HomePage() {
     }
   }
 
-  function prepareChartData(transactions: Transaction[]) {
-    // Sort transactions by date (ascending)
-    const sortedTransactions = [...transactions].sort(
-      (a, b) => a.date!.valueOf() - b.date!.valueOf()
-    );
+  function prepareChartData(userData: Transaction[]) {
     let cumulativeSum = 0;
-    const chartData = sortedTransactions.map((transaction) => {
-      cumulativeSum += transaction.cost || 0; // Add cost to cumulative sum
+    const chartData = sortByDate("old_to_new", userData)!
+        .map((transaction) => {
+      cumulativeSum += transaction.cost || 0;
       return {
-        date: dayjs(transaction.date).format("YYYY-MM-DD"), // Format date as ISO string
-        "Total spending": cumulativeSum, // Cumulative sum up to this point
+        date: dayjs(transaction.date).format("YYYY-MM-DD"),
+        "Total spending": cumulativeSum,
       };
     });
     setHistoricalSpending(chartData);
     setLoading(false);
   }
+  
 
   
   const router = useRouter()
@@ -192,11 +189,10 @@ export default function HomePage() {
   useEffect(() => {
     if (!isLoading && user) {
       // Ensure data fetching happens only when not loading and user is available
-      getData()
       fetchUserData()
+      getData()
     }
-  }, [isLoading, user,loading]); // Add dependencies to run the effect properly
-
+  }, [isLoading, user]); // Add dependencies to run the effect properly
   if (isLoading || loading) {
     return (
       <div
@@ -250,57 +246,71 @@ export default function HomePage() {
         </Row>
       </div>
       <div>
-      <MantineProvider defaultColorScheme={"light"}>
-      <div style={{ display: 'flex', flexDirection: 'row', justifyContent: 'space-between', gap: '20px', padding: '20px' }}>
-        {/* Chart Section */}
-        <div style={{ flex: 1 }}>
-          <h2>Transaction Page</h2>
-          <LineChart
-            h={300}
-            data={historicalSpending}
-            dataKey="date"
-            series={[{ name: "Total spending", color: "indigo.6" }]}
-            curveType="linear"
-            connectNulls
-          />
-        </div>
-
-        {/* Recent Transactions Section */}
-        <div style={{ flex: 1 }}>
-          <h2>Recent Transactions</h2>
-          <List
-            itemLayout="horizontal"
-            dataSource={historicalTransaction}
-            renderItem={(item) => (
-              <Card>
-                <List.Item
-                  actions={[
-                    <a
-                      onClick={() => editTransaction(item)}
-                      onKeyDown={() => editTransaction(item)}
-                      key="list-loadmore-edit"
+        <MantineProvider defaultColorScheme={"light"}>
+          <div
+            style={{
+              display: "flex",
+              flexDirection: "row",
+              justifyContent: "space-between",
+              gap: "20px",
+              padding: "20px",
+            }}
+          >
+            {/* Chart Section */}
+            <div style={{ flex: 1 }}>
+              <h2>Transaction Page</h2>
+              <LineChart
+                h={300}
+                data={historicalSpending}
+                dataKey="date"
+                series={[{ name: "Total spending", color: "indigo.6" }]}
+                curveType="linear"
+                connectNulls
+              />
+            </div>
+  
+            {/* Recent Transactions Section */}
+            <div style={{ flex: 1 }}>
+              <h2>Recent Transactions</h2>
+              <List
+                itemLayout="horizontal"
+                dataSource={historicalTransaction}
+                renderItem={(item) => (
+                  <Card>
+                    <List.Item
+                      actions={[
+                        <a
+                          onClick={() => editTransaction(item)}
+                          onKeyDown={() => editTransaction(item)}
+                          key="list-loadmore-edit"
+                        >
+                          edit
+                        </a>,
+                      ]}
                     >
-                      edit
-                    </a>,
-                  ]} // Make it popup modal and edit from there
-                >
-                  <List.Item.Meta
-                    title={item.name}
-                    description={"$" + item.cost}
-                  />
-                </List.Item>
-              </Card>
-            )}
-          />
-        </div>
-      </div>
-    </MantineProvider>
+                      <List.Item.Meta
+                        title={item.name}
+                        description={"$" + item.cost}
+                      />
+                    </List.Item>
+                  </Card>
+                )}
+              />
+            </div>
           </div>
-      
+        </MantineProvider>
+      </div>
+  
       <Button>
         <a href="/api/auth/logout">Logout</a>
       </Button>
-
+  
+      {modalLoading ? (
+        <div style={{ display: "flex", justifyContent: "center", padding: "20px" }}>
+          <Spin size="large" />
+        </div>
+      ) : null}
+  
       <Modal
         title="New transaction"
         open={isModalOpen}
@@ -325,7 +335,7 @@ export default function HomePage() {
           >
             <Input />
           </Form.Item>
-
+  
           <Form.Item<Transaction>
             label="Cost"
             name="cost"
@@ -335,7 +345,7 @@ export default function HomePage() {
           >
             <InputNumber prefix="$" placeholder="0" precision={2} controls />
           </Form.Item>
-
+  
           <Form.Item<Transaction>
             label="Date"
             name="date"
@@ -345,18 +355,18 @@ export default function HomePage() {
           >
             <DatePicker />
           </Form.Item>
-
+  
           <Form.Item<Transaction> label="Description" name="description">
             <Input />
           </Form.Item>
         </Form>
       </Modal>
-      
-      
-      <Button onClick={() => router.push('/transaction')}>Transaction page</Button>
-
+  
+      <Button onClick={() => router.push("/transaction")}>
+        Transaction page
+      </Button>
     </div>
   ) : (
-    <p>No user information available</p> // Handle the case where user is not defined
+    <p>No user information available</p>
   );
-}
+}  

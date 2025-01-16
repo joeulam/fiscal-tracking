@@ -151,7 +151,7 @@ export function sortByDate(
     }
     const dateA = dayjs(a.date);
     const dateB = dayjs(b.date);
-
+    
     return order === "new_to_old"
       ? dateB.valueOf() - dateA.valueOf() // Descending
       : dateA.valueOf() - dateB.valueOf(); // Ascending
