@@ -23,13 +23,17 @@ import dayjs from "dayjs";
 import { ObjectId } from "mongodb";
 import {
   monthlySpending,
+  sortByDate,
   Transaction,
   uploadEditedTranscation,
   uploadTranscation,
   userExist,
 } from "../functions/transaction_functions";
 import { useRouter } from "next/navigation";
-
+import { ColorSchemeScript, MantineProvider } from "@mantine/core";
+import { LineChart } from "@mantine/charts";
+import "@mantine/core/styles/global.css";
+import "@mantine/charts/styles.css";
 
 
 export default function HomePage() {
@@ -44,6 +48,10 @@ export default function HomePage() {
   >([]);
   const { user, error, isLoading } = useUser();
   const [form] = Form.useForm<Transaction>(); // Store transaction data
+  const [historicalSpending, setHistoricalSpending] = useState<
+  { date: string; "Total spending": number }[]
+  >([]);
+  const [loading, setLoading] = useState(true);
 
   // * -------------------- Modal popup control
   const showModal = (editTransaction: boolean) => {
@@ -150,16 +158,46 @@ export default function HomePage() {
     showModal(true);
   };
 
+
+  async function getData() {
+    if (!isLoading && user) {
+      const userData = await monthlySpending(user!);
+      setHistoricalTransaction(
+        sortByDate("new_to_old", userData.response.transactions)!
+      );
+      prepareChartData(userData.response.transactions);
+    }
+  }
+
+  function prepareChartData(transactions: Transaction[]) {
+    // Sort transactions by date (ascending)
+    const sortedTransactions = [...transactions].sort(
+      (a, b) => a.date!.valueOf() - b.date!.valueOf()
+    );
+    let cumulativeSum = 0;
+    const chartData = sortedTransactions.map((transaction) => {
+      cumulativeSum += transaction.cost || 0; // Add cost to cumulative sum
+      return {
+        date: dayjs(transaction.date).format("YYYY-MM-DD"), // Format date as ISO string
+        "Total spending": cumulativeSum, // Cumulative sum up to this point
+      };
+    });
+    setHistoricalSpending(chartData);
+    setLoading(false);
+  }
+
+  
   const router = useRouter()
 
   useEffect(() => {
     if (!isLoading && user) {
       // Ensure data fetching happens only when not loading and user is available
+      getData()
       fetchUserData()
     }
-  }, [isLoading, user]); // Add dependencies to run the effect properly
+  }, [isLoading, user,loading]); // Add dependencies to run the effect properly
 
-  if (isLoading) {
+  if (isLoading || loading) {
     return (
       <div
         style={{
@@ -170,6 +208,7 @@ export default function HomePage() {
           width: "100vw", // Full screen width
         }}
       >
+        <ColorSchemeScript defaultColorScheme="light" />
         <Spin size="large" />
       </div>
     );
@@ -181,6 +220,7 @@ export default function HomePage() {
 
   return user ? (
     <div>
+      <ColorSchemeScript defaultColorScheme="light" />
       {contextHolder}
       <img className="w-40 h-38" src="calicoWDiscription.png" />
       <img src={user.picture!} alt={user.name!} />
@@ -210,31 +250,52 @@ export default function HomePage() {
         </Row>
       </div>
       <div>
-        <List
-          itemLayout="horizontal"
-          dataSource={historicalTransaction}
-          renderItem={(item) => (
-            <Card>
-              <List.Item
-                actions={[
-                  <a
-                    onClick={() => editTransaction(item)}
-                    onKeyDown={() => editTransaction(item)}
-                    key="list-loadmore-edit"
-                  >
-                    edit
-                  </a>,
-                ]} // Make it popup modal and edit from there
-              >
-                <List.Item.Meta
-                  title={item.name} // Change so it dynamically updates with transaction
-                  description={"$" + item.cost} // Change so it dynamically updates with transaction
-                />
-              </List.Item>
-            </Card>
-          )}
-        />
+      <MantineProvider defaultColorScheme={"light"}>
+      <div style={{ display: 'flex', flexDirection: 'row', justifyContent: 'space-between', gap: '20px', padding: '20px' }}>
+        {/* Chart Section */}
+        <div style={{ flex: 1 }}>
+          <h2>Transaction Page</h2>
+          <LineChart
+            h={300}
+            data={historicalSpending}
+            dataKey="date"
+            series={[{ name: "Total spending", color: "indigo.6" }]}
+            curveType="linear"
+            connectNulls
+          />
+        </div>
+
+        {/* Recent Transactions Section */}
+        <div style={{ flex: 1 }}>
+          <h2>Recent Transactions</h2>
+          <List
+            itemLayout="horizontal"
+            dataSource={historicalTransaction}
+            renderItem={(item) => (
+              <Card>
+                <List.Item
+                  actions={[
+                    <a
+                      onClick={() => editTransaction(item)}
+                      onKeyDown={() => editTransaction(item)}
+                      key="list-loadmore-edit"
+                    >
+                      edit
+                    </a>,
+                  ]} // Make it popup modal and edit from there
+                >
+                  <List.Item.Meta
+                    title={item.name}
+                    description={"$" + item.cost}
+                  />
+                </List.Item>
+              </Card>
+            )}
+          />
+        </div>
       </div>
+    </MantineProvider>
+          </div>
       
       <Button>
         <a href="/api/auth/logout">Logout</a>

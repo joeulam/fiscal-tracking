@@ -82,44 +82,50 @@ export default function TransactionPage() {
 
   return (
     <MantineProvider defaultColorScheme={"light"}>
-      <div style={{ margin: 20 }}>
-        transaction page in question
-        <LineChart
-          style={{ width: "50%" }}
-          h={300}
-          data={historicalSpending}
-          dataKey="date"
-          series={[{ name: "Total spending", color: "indigo.6" }]}
-          curveType="linear"
-          connectNulls
-        />
-        Recent Transactions
-        <List
-          itemLayout="horizontal"
-          dataSource={historicalTransaction}
-          renderItem={(item) => (
-            <Card>
-              <List.Item
-                actions={[
-                  <a
-                    // onClick={() => editTransaction(item)}
-                    // onKeyDown={() => editTransaction(item)}
-                    key="list-loadmore-edit"
-                  >
-                    edit
-                  </a>,
-                ]} // Make it popup modal and edit from there
-              >
-                <List.Item.Meta
-                  title={item.name} // Change so it dynamically updates with transaction
-                  description={"$" + item.cost} // Change so it dynamically updates with transaction
-                />
-              </List.Item>
-            </Card>
-          )}
-        />
-        <Button onClick={() => router.push("/homepage")}>Dashboard</Button>
+      <div style={{ display: 'flex', flexDirection: 'row', justifyContent: 'space-between', gap: '20px', padding: '20px' }}>
+        {/* Chart Section */}
+        <div style={{ flex: 1 }}>
+          <h2>Transaction Page</h2>
+          <LineChart
+            h={300}
+            data={historicalSpending}
+            dataKey="date"
+            series={[{ name: "Total spending", color: "indigo.6" }]}
+            curveType="linear"
+            connectNulls
+          />
+        </div>
+
+        {/* Recent Transactions Section */}
+        <div style={{ flex: 1 }}>
+          <h2>Recent Transactions</h2>
+          <List
+            itemLayout="horizontal"
+            dataSource={historicalTransaction}
+            renderItem={(item) => (
+              <Card>
+                <List.Item
+                  actions={[
+                    <a
+                      key="list-loadmore-edit"
+                      onClick={() => console.log("Edit clicked", item)}
+                    >
+                      Edit
+                    </a>,
+                  ]}
+                >
+                  <List.Item.Meta
+                    title={item.name}
+                    description={"$" + item.cost}
+                  />
+                </List.Item>
+              </Card>
+            )}
+          />
+        </div>
       </div>
+      <Button onClick={() => router.push("/homepage")}>Dashboard</Button>
     </MantineProvider>
+
   );
 }
