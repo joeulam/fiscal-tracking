@@ -9,10 +9,11 @@ import {
 import { useEffect, useState } from "react";
 import { useUser } from "@auth0/nextjs-auth0/client";
 import dayjs from "dayjs";
-import { Button, Card, List, Spin } from "antd";
+import { Button, Card, Divider, List, Skeleton, Spin } from "antd";
 import "@mantine/core/styles/global.css";
 import "@mantine/charts/styles.css";
 import { useRouter } from "next/navigation";
+import InfiniteScroll from 'react-infinite-scroll-component';
 
 export default function TransactionPage() {
   const { user, isLoading } = useUser();
@@ -99,7 +100,15 @@ export default function TransactionPage() {
         {/* Recent Transactions Section */}
         <div style={{ flex: 1 }}>
           <h2>Recent Transactions</h2>
-          <List
+          <InfiniteScroll
+            dataLength={historicalTransaction.length}
+            next={getData}
+            hasMore={historicalTransaction.length < 5}
+            loader={<Skeleton avatar paragraph={{ rows: 1 }} active />}
+            endMessage={<Divider plain>It is all, nothing more 🤐</Divider>}
+            scrollableTarget="scrollableDiv"
+          >
+        <List
             itemLayout="horizontal"
             dataSource={historicalTransaction}
             renderItem={(item) => (
@@ -122,6 +131,8 @@ export default function TransactionPage() {
               </Card>
             )}
           />
+      </InfiniteScroll>
+          
         </div>
       </div>
       <Button onClick={() => router.push("/homepage")}>Dashboard</Button>
