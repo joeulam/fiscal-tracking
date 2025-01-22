@@ -154,6 +154,7 @@ export default function HomePage() {
       );
       setMonthlySpendingLoading(false);
     }
+    setLoading(false); // Stop loading spinner
   };
   const editTransaction = (transactionCard: Transaction) => {
     form.setFieldsValue({
