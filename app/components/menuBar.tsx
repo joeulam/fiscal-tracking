@@ -33,6 +33,7 @@ const MenuList: React.FC = () => {
       key: "sub4",
       label: "Settings",
       icon: <AppstoreOutlined />,
+      onClick: () => router.push("/settings"),
     },
   ];
   return (

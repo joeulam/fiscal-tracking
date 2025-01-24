@@ -137,24 +137,31 @@ export default function HomePage() {
 
   const fetchUserData = async () => {
     const response = await userExist(user!);
-    if (response?.success) {
-      const userData = await monthlySpending(user!);
-      const currentMonth = new Date().getMonth();
-      const currentYear = new Date().getFullYear();
-      setMonthlySpendingAmount(
-        userData.response.transactions
-          .filter((item: { date: string | number | Date }) => {
-            const itemDate = new Date(item.date);
-            return (
-              itemDate.getMonth() === currentMonth &&
-              itemDate.getFullYear() === currentYear
-            );
-          })
-          .reduce((acc: number, item: Transaction) => acc + item.cost!, 0)
-      );
+    try{
+      if (response?.success) {
+        const userData = await monthlySpending(user!);
+        const currentMonth = new Date().getMonth();
+        const currentYear = new Date().getFullYear();
+        setMonthlySpendingAmount(
+          userData.response.transactions
+            .filter((item: { date: string | number | Date }) => {
+              const itemDate = new Date(item.date);
+              return (
+                itemDate.getMonth() === currentMonth &&
+                itemDate.getFullYear() === currentYear
+              );
+            })
+            .reduce((acc: number, item: Transaction) => acc + item.cost!, 0)
+        );
+        setMonthlySpendingLoading(false);
+      }
+    }
+    catch{
       setMonthlySpendingLoading(false);
+      setLoading(false); // Stop loading spinner
     }
     setLoading(false); // Stop loading spinner
+
   };
   const editTransaction = (transactionCard: Transaction) => {
     form.setFieldsValue({
@@ -168,13 +175,19 @@ export default function HomePage() {
   };
 
   async function getData() {
-    if (!isLoading && user) {
-      const userData = await monthlySpending(user!);
-      setHistoricalTransaction(
-        sortByDate("new_to_old", userData.response.transactions)!
-      );
-      prepareChartData(userData.response.transactions);
+    try{
+      if (!isLoading && user) {
+        const userData = await monthlySpending(user!);
+        setHistoricalTransaction(
+          sortByDate("new_to_old", userData.response.transactions)!
+        );
+        prepareChartData(userData.response.transactions);
+      }
     }
+    catch(error){
+      console.log(error)
+    }
+    
   }
 
   function prepareChartData(userData: Transaction[]) {

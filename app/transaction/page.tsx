@@ -14,6 +14,7 @@ import "@mantine/core/styles/global.css";
 import "@mantine/charts/styles.css";
 import { useRouter } from "next/navigation";
 import InfiniteScroll from 'react-infinite-scroll-component';
+import MenuList from "../components/menuBar";
 
 export default function TransactionPage() {
   const { user, isLoading } = useUser();
@@ -29,26 +30,28 @@ export default function TransactionPage() {
     if (!isLoading && user) {
       const userData = await monthlySpending(user!);
       setHistoricalTransaction(
-        sortByDate("new_to_old", userData.response.transactions)!
+        sortByDate("new_to_old", userData.response?.transactions)!
       );
-      prepareChartData(userData.response.transactions);
+      prepareChartData(userData.response?.transactions);
     }
   }
 
   function prepareChartData(transactions: Transaction[]) {
     // Sort transactions by date (ascending)
-    const sortedTransactions = [...transactions].sort(
-      (a, b) => a.date!.valueOf() - b.date!.valueOf()
-    );
-    let cumulativeSum = 0;
-    const chartData = sortedTransactions.map((transaction) => {
-      cumulativeSum += transaction.cost || 0; // Add cost to cumulative sum
-      return {
-        date: dayjs(transaction.date).format("YYYY-MM-DD"), // Format date as ISO string
-        "Total spending": cumulativeSum, // Cumulative sum up to this point
-      };
-    });
-    setHistoricalSpending(chartData);
+    if(transactions != null ){
+      const sortedTransactions = [...transactions].sort(
+        (a, b) => a.date!.valueOf() - b.date!.valueOf()
+      );
+      let cumulativeSum = 0;
+      const chartData = sortedTransactions.map((transaction) => {
+        cumulativeSum += transaction.cost || 0; // Add cost to cumulative sum
+        return {
+          date: dayjs(transaction.date).format("YYYY-MM-DD"), // Format date as ISO string
+          "Total spending": cumulativeSum, // Cumulative sum up to this point
+        };
+      });
+      setHistoricalSpending(chartData);
+    }
     setLoading(false);
   }
 
@@ -84,6 +87,21 @@ export default function TransactionPage() {
   return (
     <MantineProvider defaultColorScheme={"light"}>
       <div style={{ display: 'flex', flexDirection: 'row', justifyContent: 'space-between', gap: '20px', padding: '20px' }}>
+      <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', width: 256}}>
+        <div style={{ textAlign: 'center', padding: '20px 0' }}>
+          <img
+            src="calicoWDiscription.png"
+            alt="Logo"
+            style={{
+              width: '150px', // Adjust width as needed
+              height: 'auto', // Maintain aspect ratio
+              marginBottom: '10px', // Add space below the image
+            }}
+          />
+        </div>
+        <MenuList />
+      </div>
+        
         {/* Chart Section */}
         <div style={{ flex: 1 }}>
           <h2>Transaction Page</h2>
