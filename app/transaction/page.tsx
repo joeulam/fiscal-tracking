@@ -136,6 +136,7 @@ export default function TransactionPage() {
                     <a
                       key="list-loadmore-edit"
                       onClick={() => console.log("Edit clicked", item)}
+                      onKeyDown={() => console.log("Edit clicked", item)}
                     >
                       Edit
                     </a>,
