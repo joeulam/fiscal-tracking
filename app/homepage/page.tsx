@@ -14,7 +14,6 @@ import {
   List,
   message,
   Modal,
-  Row,
   Skeleton,
   Spin,
   Statistic,
@@ -30,7 +29,6 @@ import {
   uploadTranscation,
   userExist,
 } from "../functions/transaction_functions";
-import { useRouter } from "next/navigation";
 import { ColorSchemeScript, MantineProvider } from "@mantine/core";
 import { LineChart } from "@mantine/charts";
 
@@ -38,6 +36,7 @@ import "@mantine/core/styles/global.css";
 import "@mantine/charts/styles.css";
 import MenuList from "../components/menuList";
 import InfiniteScroll from "react-infinite-scroll-component";
+import Image from "next/image";
 
 export default function HomePage() {
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -198,9 +197,6 @@ export default function HomePage() {
     setHistoricalSpending(chartData);
     setLoading(false);
   }
-
-  const router = useRouter();
-
   useEffect(() => {
     if (!isLoading && user) {
       // Ensure data fetching happens only when not loading and user is available
@@ -235,7 +231,6 @@ export default function HomePage() {
       {/* Left Sidebar */}
       <div
         style={{
-          display: "flex",
           flexDirection: "column",
           alignItems: "center",
           width: 256,
@@ -243,23 +238,28 @@ export default function HomePage() {
           boxShadow: "2px 0 10px rgba(0, 0, 0, 0.1)",
           padding: "20px",
         }}
+        className="md:flex hidden"
       >
         <div style={{ textAlign: "center", padding: "20px 0" }}>
-          <img
-            src="calicoWDiscription.png"
+          <Image
+            src="/calicoWDiscription.png"
             alt="Logo"
+            width={150}
+            height={150}
             style={{
-              width: "150px",
-              height: "auto",
               marginBottom: "10px",
             }}
           />
         </div>
+        <div         
+        >
         <MenuList />
-      </div>
 
+        </div>
+      </div>
+      
       {/* Main Content */}
-      <div style={{ flex: 1, padding: "40px", overflow: "auto" }}>
+      <div className={"md:p-[40px] p-[10px]"} style={{ flex: 1, overflow: "auto" }}>
         <ColorSchemeScript defaultColorScheme="light" />
         {contextHolder}
 
@@ -285,13 +285,50 @@ export default function HomePage() {
             color: "#333",
           }}
         >
-          Welcome back,{" "}
-          <span style={{ color: "#ff6600" }}>{user.nickname}</span>!
+          <h1>
+            Welcome back,{" "}
+            <span style={{ color: "#ff6600" }}>{user.nickname}</span>!
+          </h1>
         </div>
 
-        {/* Monthly Spending Card */}
-        <Row gutter={16}>
-          <Col span={12}>
+          {/* Chart Section */}
+          <MantineProvider defaultColorScheme="light">
+
+          <Card
+              className="p-[5px] md:p-[20px]"
+              style={{
+                flex: 1,
+                backgroundColor: "#ffffff",
+                borderRadius: "10px",
+                boxShadow: "0px 4px 12px rgba(0, 0, 0, 0.1)",
+              }}
+            >
+              <h2 style={{ marginBottom: "10px", color: "#333" }}>
+                Transaction Overview
+              </h2>
+              <LineChart
+                h={300}
+                data={historicalSpending}
+                dataKey="date"
+                series={[{ name: "Total spending", color: "#ff6600" }]}
+                curveType="linear"
+                connectNulls
+              />
+            </Card>
+
+        {/* Chart & Transactions Section */}
+          <div
+            style={{
+              display: "flex",
+              flexDirection: "row",
+              justifyContent: "space-between",
+              gap: "20px",
+              marginTop: "30px",
+              flexWrap: "wrap"
+            }}
+          >
+            
+            <Col className={"w-[100%] lg:w-1/2"}>
             {monthlySpendingLoading ? (
               <Card
                 bordered={false}
@@ -322,42 +359,6 @@ export default function HomePage() {
               </Card>
             )}
           </Col>
-        </Row>
-
-        {/* Chart & Transactions Section */}
-        <MantineProvider defaultColorScheme="light">
-          <div
-            style={{
-              display: "flex",
-              flexDirection: "row",
-              justifyContent: "space-between",
-              gap: "20px",
-              marginTop: "30px",
-            }}
-          >
-            {/* Chart Section */}
-            <Card
-              style={{
-                flex: 1,
-                padding: "20px",
-                backgroundColor: "#ffffff",
-                borderRadius: "10px",
-                boxShadow: "0px 4px 12px rgba(0, 0, 0, 0.1)",
-              }}
-            >
-              <h2 style={{ marginBottom: "10px", color: "#333" }}>
-                Transaction Overview
-              </h2>
-              <LineChart
-                h={300}
-                data={historicalSpending}
-                dataKey="date"
-                series={[{ name: "Total spending", color: "#ff6600" }]}
-                curveType="linear"
-                connectNulls
-              />
-            </Card>
-
             <Card
               style={{
                 flex: 1,
@@ -381,14 +382,14 @@ export default function HomePage() {
                 }}
               >
                 <InfiniteScroll
-                  dataLength={historicalTransaction.length} 
-                  next={getData} 
-                  hasMore={historicalTransaction.length < 20} 
+                  dataLength={historicalTransaction.length}
+                  next={getData}
+                  hasMore={historicalTransaction.length < 20}
                   loader={<Skeleton avatar paragraph={{ rows: 1 }} active />}
                   endMessage={
                     <Divider plain>It is all, nothing more 🤐</Divider>
                   }
-                  scrollableTarget="scrollableDiv" 
+                  scrollableTarget="scrollableDiv"
                 >
                   <List
                     itemLayout="horizontal"
@@ -456,31 +457,8 @@ export default function HomePage() {
           >
             <a href="/api/auth/logout">Logout</a>
           </Button>
-
-          <Button
-            onClick={() => router.push("/transaction")}
-            style={{
-              border: "1px solid #ff6600",
-              color: "#ff6600",
-              borderRadius: "8px",
-              padding: "10px 20px",
-            }}
-          >
-            Transaction Page
-          </Button>
         </div>
-        {modalLoading ? (
-          <div
-            style={{
-              zIndex: 10,
-              display: "flex",
-              justifyContent: "center",
-              padding: "20px",
-            }}
-          >
-            <Spin size="large" />
-          </div>
-        ) : null}
+        
         {/* Modal for Adding Transactions */}
         <Modal
           title="New Transaction"
@@ -489,6 +467,19 @@ export default function HomePage() {
           onCancel={handleCancel}
           style={{ borderRadius: "10px" }}
         >
+          {modalLoading ? (
+          <div
+            style={{
+              zIndex: 10,
+              display: "flex",
+              position:'absolute',
+              justifyContent: "center",
+              padding: "20px",
+            }}
+          >
+            <Spin size="large" />
+          </div>
+        ) : null}
           <Form
             form={form}
             name="basic"
