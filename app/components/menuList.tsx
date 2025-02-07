@@ -8,9 +8,6 @@ type MenuItem = Required<MenuProps>["items"][number];
 
 const MenuList: React.FC = () => {
   const router = useRouter();
-  const onClick: MenuProps["onClick"] = (e) => {
-    console.log("click ", e);
-  };
   const items: MenuItem[] = [
     {
       key: "sub1",
@@ -39,7 +36,6 @@ const MenuList: React.FC = () => {
   return (
     <>
       <Menu
-        onClick={onClick}
         style={{ width: 256 }}
         defaultSelectedKeys={["1"]}
         defaultOpenKeys={["sub1"]}

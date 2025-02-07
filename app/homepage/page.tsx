@@ -6,6 +6,7 @@ import {
   Card,
   Col,
   DatePicker,
+  Divider,
   FloatButton,
   Form,
   Input,
@@ -17,7 +18,6 @@ import {
   Skeleton,
   Spin,
   Statistic,
-  Typography,
 } from "antd";
 import { PlusOutlined } from "@ant-design/icons";
 import dayjs from "dayjs";
@@ -36,7 +36,8 @@ import { LineChart } from "@mantine/charts";
 
 import "@mantine/core/styles/global.css";
 import "@mantine/charts/styles.css";
-import MenuList from "../components/menuBar";
+import MenuList from "../components/menuList";
+import InfiniteScroll from "react-infinite-scroll-component";
 
 export default function HomePage() {
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -55,7 +56,6 @@ export default function HomePage() {
   >([]);
   const [loading, setLoading] = useState(true);
   const [modalLoading, setModalLoading] = useState(false); // New loading state
-  const { Text } = Typography;
 
   // * -------------------- Modal popup control
   const showModal = (editTransaction: boolean) => {
@@ -137,7 +137,7 @@ export default function HomePage() {
 
   const fetchUserData = async () => {
     const response = await userExist(user!);
-    try{
+    try {
       if (response?.success) {
         const userData = await monthlySpending(user!);
         const currentMonth = new Date().getMonth();
@@ -155,13 +155,11 @@ export default function HomePage() {
         );
         setMonthlySpendingLoading(false);
       }
-    }
-    catch{
+    } catch {
       setMonthlySpendingLoading(false);
       setLoading(false); // Stop loading spinner
     }
     setLoading(false); // Stop loading spinner
-
   };
   const editTransaction = (transactionCard: Transaction) => {
     form.setFieldsValue({
@@ -175,7 +173,7 @@ export default function HomePage() {
   };
 
   async function getData() {
-    try{
+    try {
       if (!isLoading && user) {
         const userData = await monthlySpending(user!);
         setHistoricalTransaction(
@@ -183,11 +181,9 @@ export default function HomePage() {
         );
         prepareChartData(userData.response.transactions);
       }
+    } catch (error) {
+      console.log(error);
     }
-    catch(error){
-      console.log(error)
-    }
-    
   }
 
   function prepareChartData(userData: Transaction[]) {
@@ -232,116 +228,251 @@ export default function HomePage() {
   if (error) {
     return <p>Error: {error.message}</p>; // Handle error state
   }
-
   return user ? (
-    <div style={{ display: 'flex', height: '100vh' }}>
+    <div
+      style={{ display: "flex", height: "100vh", backgroundColor: "#f8f9fa" }}
+    >
       {/* Left Sidebar */}
-      <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', width: 256}}>
-        <div style={{ textAlign: 'center', padding: '20px 0' }}>
+      <div
+        style={{
+          display: "flex",
+          flexDirection: "column",
+          alignItems: "center",
+          width: 256,
+          backgroundColor: "#ffffff",
+          boxShadow: "2px 0 10px rgba(0, 0, 0, 0.1)",
+          padding: "20px",
+        }}
+      >
+        <div style={{ textAlign: "center", padding: "20px 0" }}>
           <img
             src="calicoWDiscription.png"
             alt="Logo"
             style={{
-              width: '150px', // Adjust width as needed
-              height: 'auto', // Maintain aspect ratio
-              marginBottom: '10px', // Add space below the image
+              width: "150px",
+              height: "auto",
+              marginBottom: "10px",
             }}
           />
         </div>
         <MenuList />
       </div>
-  
+
       {/* Main Content */}
-      <div style={{ flex: 1, padding: "20px", overflow: 'auto' }}>
+      <div style={{ flex: 1, padding: "40px", overflow: "auto" }}>
         <ColorSchemeScript defaultColorScheme="light" />
         {contextHolder}
-        <FloatButton onClick={() => showModal(false)} icon={<PlusOutlined />}>
+
+        {/* Floating Button */}
+        <FloatButton
+          onClick={() => showModal(false)}
+          icon={<PlusOutlined />}
+          style={{
+            backgroundColor: "#ff6600",
+            color: "white",
+            boxShadow: "0px 4px 8px rgba(255, 102, 0, 0.2)",
+          }}
+        >
           Add transaction
         </FloatButton>
-        <div>
-          <Text>Welcome back {user.nickname}</Text>
-          <Row gutter={16}>
-            <Col span={12}>
-              {monthlySpendingLoading ? (
-                <Card bordered={false}>
-                  <Skeleton active paragraph={false} />
-                </Card>
-              ) : (
-                <Card bordered={false}>
-                  <Statistic
-                    title="Current monthly spending"
-                    value={monthlySpendingAmount}
-                    precision={2}
-                    suffix="$"
-                  />
-                </Card>
-              )}
-            </Col>
-          </Row>
+
+        {/* Welcome Text */}
+        <div
+          style={{
+            marginBottom: "20px",
+            fontSize: "18px",
+            fontWeight: "600",
+            color: "#333",
+          }}
+        >
+          Welcome back,{" "}
+          <span style={{ color: "#ff6600" }}>{user.nickname}</span>!
         </div>
-        <div>
-          <MantineProvider defaultColorScheme={"light"}>
-            <div
+
+        {/* Monthly Spending Card */}
+        <Row gutter={16}>
+          <Col span={12}>
+            {monthlySpendingLoading ? (
+              <Card
+                bordered={false}
+                style={{
+                  backgroundColor: "#ffffff",
+                  boxShadow: "0px 4px 12px rgba(0, 0, 0, 0.1)",
+                  borderRadius: "10px",
+                }}
+              >
+                <Skeleton active paragraph={false} />
+              </Card>
+            ) : (
+              <Card
+                bordered={false}
+                style={{
+                  backgroundColor: "#ffffff",
+                  boxShadow: "0px 4px 12px rgba(0, 0, 0, 0.1)",
+                  borderRadius: "10px",
+                }}
+              >
+                <Statistic
+                  title="Current Monthly Spending"
+                  value={monthlySpendingAmount}
+                  precision={2}
+                  suffix="$"
+                  style={{ color: "#333" }}
+                />
+              </Card>
+            )}
+          </Col>
+        </Row>
+
+        {/* Chart & Transactions Section */}
+        <MantineProvider defaultColorScheme="light">
+          <div
+            style={{
+              display: "flex",
+              flexDirection: "row",
+              justifyContent: "space-between",
+              gap: "20px",
+              marginTop: "30px",
+            }}
+          >
+            {/* Chart Section */}
+            <Card
               style={{
-                display: "flex",
-                flexDirection: "row",
-                justifyContent: "space-between",
-                gap: "20px",
+                flex: 1,
                 padding: "20px",
+                backgroundColor: "#ffffff",
+                borderRadius: "10px",
+                boxShadow: "0px 4px 12px rgba(0, 0, 0, 0.1)",
               }}
             >
-              {/* Chart Section */}
-              <div style={{ flex: 1 }}>
-                <h2>Transaction Page</h2>
-                <LineChart
-                  h={300}
-                  data={historicalSpending}
-                  dataKey="date"
-                  series={[{ name: "Total spending", color: "indigo.6" }]}
-                  curveType="linear"
-                  connectNulls
-                />
-              </div>
-  
-              {/* Recent Transactions Section */}
-              <div style={{ flex: 1 }}>
-                <h2>Recent Transactions</h2>
-                <List
-                  itemLayout="horizontal"
-                  dataSource={historicalTransaction}
-                  renderItem={(item) => (
-                    <Card>
-                      <List.Item
-                        actions={[
-                          <a
-                            onClick={() => editTransaction(item)}
-                            onKeyDown={() => editTransaction(item)}
-                            key="list-loadmore-edit"
-                          >
-                            edit
-                          </a>,
-                        ]}
+              <h2 style={{ marginBottom: "10px", color: "#333" }}>
+                Transaction Overview
+              </h2>
+              <LineChart
+                h={300}
+                data={historicalSpending}
+                dataKey="date"
+                series={[{ name: "Total spending", color: "#ff6600" }]}
+                curveType="linear"
+                connectNulls
+              />
+            </Card>
+
+            <Card
+              style={{
+                flex: 1,
+                padding: "20px",
+                backgroundColor: "#ffffff",
+                borderRadius: "10px",
+                boxShadow: "0px 4px 12px rgba(0, 0, 0, 0.1)",
+              }}
+            >
+              <h2 style={{ marginBottom: "10px", color: "#333" }}>
+                Recent Transactions
+              </h2>
+
+              {/* Scrollable Container */}
+              <div
+                id="scrollableDiv"
+                style={{
+                  height: "400px",
+                  overflow: "auto",
+                  paddingRight: "10px",
+                }}
+              >
+                <InfiniteScroll
+                  dataLength={historicalTransaction.length} 
+                  next={getData} 
+                  hasMore={historicalTransaction.length < 20} 
+                  loader={<Skeleton avatar paragraph={{ rows: 1 }} active />}
+                  endMessage={
+                    <Divider plain>It is all, nothing more 🤐</Divider>
+                  }
+                  scrollableTarget="scrollableDiv" 
+                >
+                  <List
+                    itemLayout="horizontal"
+                    dataSource={historicalTransaction}
+                    renderItem={(item) => (
+                      <Card
+                        style={{
+                          backgroundColor: "#f8f9fa",
+                          border: "1px solid #ddd",
+                          borderRadius: "8px",
+                          marginBottom: "10px",
+                        }}
                       >
-                        <List.Item.Meta
-                          title={item.name}
-                          description={"$" + item.cost}
-                        />
-                      </List.Item>
-                    </Card>
-                  )}
-                />
+                        <List.Item
+                          actions={[
+                            <a
+                              onClick={() => editTransaction(item)}
+                              onKeyDown={() => editTransaction(item)}
+                              key="edit"
+                              style={{ color: "#ff6600", fontWeight: "600" }}
+                            >
+                              Edit
+                            </a>,
+                          ]}
+                        >
+                          <List.Item.Meta
+                            title={
+                              <span
+                                style={{ color: "#333", fontWeight: "500" }}
+                              >
+                                {item.name}
+                              </span>
+                            }
+                            description={
+                              <span style={{ color: "#666" }}>
+                                ${item.cost}
+                              </span>
+                            }
+                          />
+                        </List.Item>
+                      </Card>
+                    )}
+                  />
+                </InfiniteScroll>
               </div>
-            </div>
-          </MantineProvider>
+            </Card>
+          </div>
+        </MantineProvider>
+
+        {/* Buttons */}
+        <div
+          style={{
+            display: "flex",
+            justifyContent: "space-between",
+            marginTop: "30px",
+          }}
+        >
+          <Button
+            style={{
+              backgroundColor: "#ff6600",
+              color: "white",
+              borderRadius: "8px",
+              padding: "10px 20px",
+            }}
+          >
+            <a href="/api/auth/logout">Logout</a>
+          </Button>
+
+          <Button
+            onClick={() => router.push("/transaction")}
+            style={{
+              border: "1px solid #ff6600",
+              color: "#ff6600",
+              borderRadius: "8px",
+              padding: "10px 20px",
+            }}
+          >
+            Transaction Page
+          </Button>
         </div>
-  
-        <Button>
-          <a href="/api/auth/logout">Logout</a>
-        </Button>
-  
         {modalLoading ? (
           <div
             style={{
+              zIndex: 10,
               display: "flex",
               justifyContent: "center",
               padding: "20px",
@@ -350,12 +481,13 @@ export default function HomePage() {
             <Spin size="large" />
           </div>
         ) : null}
-  
+        {/* Modal for Adding Transactions */}
         <Modal
-          title="New transaction"
+          title="New Transaction"
           open={isModalOpen}
           onOk={() => handleOk(isTransactionEdit)}
           onCancel={handleCancel}
+          style={{ borderRadius: "10px" }}
         >
           <Form
             form={form}
@@ -375,7 +507,7 @@ export default function HomePage() {
             >
               <Input />
             </Form.Item>
-  
+
             <Form.Item<Transaction>
               label="Cost"
               name="cost"
@@ -385,7 +517,7 @@ export default function HomePage() {
             >
               <InputNumber prefix="$" placeholder="0" precision={2} controls />
             </Form.Item>
-  
+
             <Form.Item<Transaction>
               label="Date"
               name="date"
@@ -395,20 +527,15 @@ export default function HomePage() {
             >
               <DatePicker />
             </Form.Item>
-  
+
             <Form.Item<Transaction> label="Description" name="description">
               <Input />
             </Form.Item>
           </Form>
         </Modal>
-  
-        <Button onClick={() => router.push("/transaction")}>
-          Transaction page
-        </Button>
       </div>
     </div>
   ) : (
     <p>No user information available</p>
   );
-  
 }

@@ -14,7 +14,7 @@ import "@mantine/core/styles/global.css";
 import "@mantine/charts/styles.css";
 import { useRouter } from "next/navigation";
 import InfiniteScroll from 'react-infinite-scroll-component';
-import MenuList from "../components/menuBar";
+import MenuList from "../components/menuList";
 
 export default function TransactionPage() {
   const { user, isLoading } = useUser();
@@ -59,7 +59,6 @@ export default function TransactionPage() {
   useEffect(() => {
     if (!isLoading && user) {
       getData();
-      console.log(historicalTransaction);
     }
   }, [isLoading, user]);
 
@@ -135,8 +134,6 @@ export default function TransactionPage() {
                   actions={[
                     <a
                       key="list-loadmore-edit"
-                      onClick={() => console.log("Edit clicked", item)}
-                      onKeyDown={() => console.log("Edit clicked", item)}
                     >
                       Edit
                     </a>,
