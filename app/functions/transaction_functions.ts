@@ -115,7 +115,7 @@ export const userExist = async (user: UserProfile) => {
       // Applies check to whether or not the user mongoDB exist or not
       method: "POST",
       body: JSON.stringify({
-        userId: user?.sub,
+        userId: user?.sub!.toString().split("|")[1],
         userName: user?.nickname,
         emailAddress: user?.email,
       }),
@@ -141,7 +141,7 @@ export function sortByDate(
   order: string,
   historicalTransaction: Transaction[]
 ): Transaction[] {
-  if (!historicalTransaction || historicalTransaction.length === 0) {
+  if (!historicalTransaction || historicalTransaction.length === 0 || historicalTransaction == null) {
     console.log("No transactions to sort.");
     return [];
   }
@@ -151,7 +151,7 @@ export function sortByDate(
     }
     const dateA = dayjs(a.date);
     const dateB = dayjs(b.date);
-
+    
     return order === "new_to_old"
       ? dateB.valueOf() - dateA.valueOf() // Descending
       : dateA.valueOf() - dateB.valueOf(); // Ascending
