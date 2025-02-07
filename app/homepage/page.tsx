@@ -187,7 +187,25 @@ export default function HomePage() {
 
   function prepareChartData(userData: Transaction[]) {
     let cumulativeSum = 0;
-    const chartData = sortByDate("old_to_new", userData)!.map((transaction) => {
+    const currentMonth = new Date().getMonth();
+    const currentYear = new Date().getFullYear();
+    
+    const filteredData = userData
+  .filter((item) => {
+    if (!item.date) return false; // ✅ Ensure date is defined
+
+    const itemDate = new Date(item.date.valueOf()); // ✅ Convert Dayjs to a valid date
+    return (
+      itemDate.getMonth() === currentMonth &&
+      itemDate.getFullYear() === currentYear
+    );
+  });
+
+
+    
+    const chartData = sortByDate("old_to_new", filteredData)!
+    
+    .map((transaction) => {
       cumulativeSum += transaction.cost || 0;
       return {
         date: dayjs(transaction.date).format("YYYY-MM-DD"),
