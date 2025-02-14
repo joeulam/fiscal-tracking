@@ -1,27 +1,46 @@
 "use client";
 import React from "react";
-import {Card} from "antd";
+import { useForm } from 'antd/es/form/Form';
+import {Card, Form, Button, Input} from "antd";
+import { SendOutlined } from '@ant-design/icons';
 import SettingsList from "../../components/settingsList";
 import Image from "next/image";
 import { ColorSchemeScript, MantineProvider } from "@mantine/core";
-import {Button, TextField} from '@mui/material';
-import SendIcon from '@mui/icons-material/Send';
 import emailjs from '@emailjs/browser';
 
 export default function aboutPage()
 {
-  const sendEmail = async (e: React.FormEvent<HTMLFormElement>) => {
-    e.preventDefault();
-    
+  const [form] = useForm(); // ✅ Use Ant Design's useForm() instead of useRef()
+
+  const sendEmail = async () => {
     try {
-      const result = await emailjs.sendForm('service_dra1wfr', 'template_vjsmswd', e.target as HTMLFormElement, '8_eXVsC7tdstx-Cpn');
+      const values = await form.validateFields(); // ✅ Get form values properly
+      const formElement = document.createElement('form'); // Create a temporary form element
+
+      // Append form values as hidden input fields
+      Object.keys(values).forEach((key) => {
+        const input = document.createElement('input');
+        input.name = key;
+        input.value = values[key];
+        formElement.appendChild(input);
+      });
+
+      const result = await emailjs.sendForm(
+        'service_dra1wfr', 
+        'template_vjsmswd', 
+        formElement, // ✅ Use dynamically created form
+        '8_eXVsC7tdstx-Cpn'
+      );
+
       console.log("Email sent successfully:", result.text);
       alert("Email sent successfully!");
+      form.resetFields(); // ✅ Reset form after sending
     } catch (error) {
       console.error("Error sending email:", error);
       alert("Failed to send email. Please try again.");
     }
   };
+
     return(
         <>
         <div
@@ -73,49 +92,32 @@ export default function aboutPage()
                 marginBottom: "50px",
               }}
             >
-              <form onSubmit={sendEmail}>
-                  <label htmlFor="email_from" style={{ fontWeight: "bold", marginBottom: "5px" }}>
-                    Your Email:
-                  </label>
-                  <TextField
-                    type="email"
-                    id="emailfrom"
-                    name="email_from"
-                    placeholder="Enter your email"
-                    variant="outlined"
-                    fullWidth
-                    required
-                    sx={{ marginBottom: "15px" }}
-                  />
+                  <Form layout="vertical" onFinish={sendEmail}>
+                    <Form.Item 
+                      label="Your Email" 
+                      name="email_from" 
+                      rules={[{ required: true, message: 'Please enter your email' }]}
+                    >
+                      <Input type="email" placeholder="Enter your email" />
+                    </Form.Item>
 
-                  <label htmlFor="message" style={{ fontWeight: "bold", marginBottom: "5px" }}>
-                    Message:
-                  </label>
-                  <TextField
-                    id="message"
-                    name="message"
-                    placeholder="Enter your message"
-                    variant="outlined"
-                    fullWidth
-                    multiline
-                    rows={4}
-                    required
-                    sx={{ marginBottom: "20px" }}
-                  />
+                    <Form.Item 
+                      label="Message" 
+                      name="message" 
+                      rules={[{ required: true, message: 'Please enter your message' }]}
+                    >
+                      <Input.TextArea rows={4} placeholder="Enter your message" />
+                    </Form.Item>
 
-                  <Button
-                    type="submit"
-                    variant="contained"
-                    endIcon={<SendIcon />}
-                    sx={{
-                      backgroundColor: "#ff6600",
-                      color: "#fff",
-                      "&:hover": { backgroundColor: "#cc5500" },
-                    }}
-                  >
-                    Send
-                  </Button>
-                </form>
+                    <Button 
+                      type="primary" 
+                      htmlType="submit" 
+                      icon={<SendOutlined />} 
+                      style={{ backgroundColor: "#ff6600", borderColor: "#ff6600" }}
+                    >
+                      Send
+                    </Button>
+                  </Form>
             </Card>
             </MantineProvider>
         </div>
