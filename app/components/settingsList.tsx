@@ -12,26 +12,33 @@ const MenuList: React.FC = () => {
   const items: MenuItem[] = [
     {
       key: "sub1",
-      label: "Dashboard",
+      label: "Account",
       icon: <MailOutlined />,
-      onClick: () => router.push("/homepage"),
+      onClick: () => router.push("/settings/account"),
     },
     {
       key: "sub2",
-      label: "Transaction",
+      label: "Appearance",
       icon: <AppstoreOutlined />,
-      onClick: () => router.push("/transaction"),
+      onClick: () => router.push("/settings/appearance"),
     },
     {
       key: "sub3",
-      label: "TBD",
+      label: "Contact Us",
       icon: <AppstoreOutlined />,
+      onClick: () => router.push("/settings/contact"),
     },
     {
       key: "sub4",
-      label: "Settings",
+      label: "About",
       icon: <AppstoreOutlined />,
-      onClick: () => router.push("/settings"),
+      onClick: () => router.push("/settings/about"),
+    },
+    {
+      key: "sub5",
+      label: "Return",
+      icon: <AppstoreOutlined />,
+      onClick: () => router.push("/homepage"),
     },
   ];
   return (
@@ -42,7 +49,7 @@ const MenuList: React.FC = () => {
         defaultOpenKeys={["sub1"]}
         mode="inline"
         items={items}
-      />
+        />
     </>
   );
 };
