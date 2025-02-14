@@ -8,14 +8,14 @@ import Image from "next/image";
 import { ColorSchemeScript, MantineProvider } from "@mantine/core";
 import emailjs from '@emailjs/browser';
 
-export default function aboutPage()
+export default function AboutPage()
 {
-  const [form] = useForm(); // ✅ Use Ant Design's useForm() instead of useRef()
+  const [form] = useForm();
 
   const sendEmail = async () => {
     try {
-      const values = await form.validateFields(); // ✅ Get form values properly
-      const formElement = document.createElement('form'); // Create a temporary form element
+      const values = await form.validateFields();
+      const formElement = document.createElement('form');
 
       // Append form values as hidden input fields
       Object.keys(values).forEach((key) => {
